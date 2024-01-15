@@ -74,6 +74,8 @@ end
 
 local command = arg[1]
 
+print("Running command: " .. command)
+
 if command == "install" then
     -- todo array
     local pkg = arg[2]
