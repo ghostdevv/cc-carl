@@ -94,8 +94,6 @@ end
 
 local command = ...
 
-print("Running command: " .. command)
-
 if command == "install" then
     -- todo array
     local pkg = arg[2]
@@ -129,7 +127,8 @@ if command == "install" then
 elseif command == "bootstrap" then
     boostrap()
 elseif command == "setup" then
-    -- Set up directory
+    print("Setting up carl...")
+
     fs.makeDir(CARL_DIR)
     fs.makeDir(PACKAGES_DIR)
     fs.makeDir(PACKAGES_DIR)
