@@ -14,12 +14,13 @@ local REPOSITORIES_FILE = CARL_DIR .. "/repositories"
 local MANIFEST_FILE = CARL_DIR .. "/manifest"
 
 local STARTUP_SCRIPT = ([[
-    -- CARL STARTUP SCRIPT - DO NOT REMOVE
-    shell.setPath(shell.path() .. ":%s:%s")
+-- CARL STARTUP SCRIPT - DO NOT REMOVE
+shell.setPath(shell.path() .. ":%s:%s")
 ]]):format(BIN_DIR, PACKAGES_DIR)
 
 -- * Functions
 
+--- Download the contents of url to dest
 ---@param url string
 ---@param dest string
 local function downloadFile(url, dest)
@@ -33,6 +34,7 @@ local function downloadFile(url, dest)
     file.close()
 end
 
+--- Initialise an empty file at the specified path
 ---@param path string
 local function touch(path)
     fs.open(path, "w").close()
@@ -45,7 +47,7 @@ local function api_request(path)
     local response = http.get(API_URL .. path)
 
     -- todo handle 404
-    
+
     if response == nil then
         print("Error requesting json response")
         return nil
@@ -66,7 +68,7 @@ local function api_request(path)
         print("Error parsing json response")
         return nil
     end
-    
+
     return data
 end
 
