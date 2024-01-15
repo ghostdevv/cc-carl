@@ -1,3 +1,5 @@
+local pp = require "cc.pretty"
+
 -- * Config
 
 local CARL_URL = "https://raw.githubusercontent.com/ghostdevv/cc-carl/main/packages/client/carl.lua"
@@ -70,9 +72,10 @@ end
 
 -- testing
 -- arg[1] = "setup"
--- arg[2] = "glibneofetch"
+-- arg[2] = "glib/neofetch"
 
 local command = ...
+-- local command = "install"
 
 print("Running command: " .. command)
 
@@ -87,8 +90,8 @@ if command == "install" then
     if pkg_data == nil then
         return
     end
-    
-    print(pkg_data)
+
+    pp.pretty_print(pkg_data)
 elseif command == "setup" then
     -- Set up directory
     fs.makeDir(CARL_DIR)
