@@ -72,7 +72,7 @@ end
 -- arg[1] = "setup"
 -- arg[2] = "glibneofetch"
 
-local command = arg[1]
+local command = ...
 
 print("Running command: " .. command)
 
