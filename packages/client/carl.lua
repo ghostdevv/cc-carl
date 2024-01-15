@@ -39,7 +39,7 @@ local function touch(path)
     fs.open(path, "w").close()
 end
 
-local function print_error(prefix, message)
+local function printError(prefix, message)
     term.setTextColour(colours.red)
     term.write("[" .. prefix .. "]")
     term.setTextColour(colours.white)
@@ -52,18 +52,18 @@ end
 --- Make a GET request to the API
 ---@param path string
 ---@return table | nil
-local function api_request(path)
+local function apiRequest(path)
     local response = http.get(API_URL .. path)
 
     if response == nil then
-        print_error("API Error", "Unable to connect to API")
+        printError("API Error", "Unable to connect to API")
         return nil
     end
 
     local raw_json = response.readAll()
 
     if raw_json == nil then
-        print_error("API Error", "Empty response")
+        printError("API Error", "Empty response")
         return nil
     end
 
@@ -72,12 +72,12 @@ local function api_request(path)
     local data = textutils.unserialiseJSON(raw_json, {})
 
     if data == nil then
-        print_error("API Error", "Unable to parse response")
+        printError("API Error", "Unable to parse response")
         return nil
     end
 
     if data["success"] == false then
-        print_error("API Error", data["message"])
+        printError("API Error", data["message"])
         return nil
     end
 
@@ -98,7 +98,7 @@ if command == "install" then
 
     -- local repository, packageName = r_package:match("([^/]+)/([^/]+)")
 
-    local pkg_data = api_request("/p/" .. pkg)
+    local pkg_data = apiRequest("/p/" .. pkg)
 
     if pkg_data == nil then
         return
