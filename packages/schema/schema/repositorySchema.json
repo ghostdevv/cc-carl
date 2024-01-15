@@ -1,0 +1,75 @@
+{
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 32,
+      "pattern": "^[\\w-]+$",
+      "description": "The name of this repository."
+    },
+    "packages": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 32,
+            "pattern": "^[\\w-]+$",
+            "description": "The name of the package."
+          },
+          "version": {
+            "type": "string",
+            "pattern": "(?<=^v?|\\sv?)(?:(?:0|[1-9]\\d{0,9}?)\\.){2}(?:0|[1-9]\\d{0,9})(?:-(?:--+)?(?:0|[1-9]\\d*|\\d*[a-z]+\\d*)){0,100}(?=$| |\\+|\\.)(?:(?<=-\\S+)(?:\\.(?:--?|[\\da-z-]*[a-z-]\\d*|0|[1-9]\\d*)){1,100}?)?(?!\\.)(?:\\+(?:[\\da-z]\\.?-?){1,100}?(?!\\w))?(?!\\+)",
+            "description": "The current version of the package."
+          },
+          "cli": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "If your package has a cli entry point, the name of the file to be run."
+          },
+          "files": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "url": {
+                  "type": "string",
+                  "format": "uri",
+                  "description": "The url this file can be downloaded from."
+                },
+                "path": {
+                  "type": "string",
+                  "description": "The relative path this file will be saved to."
+                }
+              },
+              "required": [
+                "url",
+                "path"
+              ],
+              "additionalProperties": false
+            },
+            "description": "An array of files to be downloaded as part of this package."
+          }
+        },
+        "required": [
+          "name",
+          "version",
+          "cli",
+          "files"
+        ],
+        "additionalProperties": false
+      }
+    }
+  },
+  "required": [
+    "name",
+    "packages"
+  ],
+  "additionalProperties": false,
+  "$schema": "http://json-schema.org/draft-07/schema#"
+}
