@@ -15,7 +15,7 @@
         "sourceMap": false,
         "checkJs": true,
         "noEmit": true,
-        "types": ["@cloudflare/workers-types"]
+        "types": []
     },
     "include": ["@types", "src"],
     "exclude": ["build", "node_modules"]
