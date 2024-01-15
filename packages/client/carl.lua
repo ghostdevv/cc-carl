@@ -20,8 +20,8 @@ shell.setPath(shell.path() .. ":%s")
 -- * Functions
 
 --- Download the contents of url to dest
----@param url string
----@param dest string
+--- @param url string
+--- @param dest string
 local function downloadFile(url, dest)
     local response = http.get(url, {}, true)
     local file = fs.open(dest, "wb")
@@ -34,11 +34,14 @@ local function downloadFile(url, dest)
 end
 
 --- Initialise an empty file at the specified path
----@param path string
+--- @param path string
 local function touch(path)
     fs.open(path, "w").close()
 end
 
+--- Print an error message in the format: "[prefix] message"
+--- @param prefix string
+--- @param message string
 local function printError(prefix, message)
     term.setTextColour(colours.red)
     term.write("[" .. prefix .. "]")
@@ -50,8 +53,8 @@ local function printError(prefix, message)
 end
 
 --- Make a GET request to the API
----@param path string
----@return table | nil
+--- @param path string
+--- @return table | nil
 local function apiRequest(path)
     local response = http.get(API_URL .. path)
 
