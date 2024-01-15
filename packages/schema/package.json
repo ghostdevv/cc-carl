@@ -1,0 +1,14 @@
+{
+    "name": "@carl/schema",
+    "private": true,
+    "types": "./src/index.ts",
+    "exports": {
+        ".": {
+            "import": "./src/index.ts",
+            "types": "./src/index.ts"
+        }
+    },
+    "devDependencies": {
+        "zod": "^3.22.4"
+    }
+}
