@@ -1,0 +1,17 @@
+{
+    "$schema": "https://raw.githubusercontent.com/ghostdevv/cc-carl/main/packages/schema/json-schema/repository.json",
+    "name": "carl",
+    "packages": [
+        {
+            "name": "carl",
+            "version": "0.1.0",
+            "cli": "carl.lua",
+            "files": [
+                {
+                    "path": "carl.lua",
+                    "url": "https://raw.githubusercontent.com/ghostdevv/cc-carl/main/packages/client/carl.lua"
+                }
+            ]
+        }
+    ]
+}

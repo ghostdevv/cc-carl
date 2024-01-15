@@ -5,6 +5,7 @@ import { Env } from './types';
 
 export const defaultRepositories: Record<string, string> = Object.freeze({
 	glib: 'https://raw.githubusercontent.com/ghostdevv/cc-glib/main/carl-repo.json',
+	carl: 'https://raw.githubusercontent.com/ghostdevv/cc-carl/main/carl-repo.json',
 });
 
 // function normaliseURL(urlString: string) {
