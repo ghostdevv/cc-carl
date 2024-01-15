@@ -130,7 +130,7 @@ local function printError(prefix, message)
 end
 
 --- Bootstrap function to be run on shell startup
-local function boostrap()
+local function bootstrap()
     for _, entry in ipairs(Manifest:all()) do
         tryAddAlias(entry)
     end
@@ -209,7 +209,7 @@ if command == "install" then
     Manifest:setManifestEntry(entry)
     tryAddAlias(entry)
 elseif command == "bootstrap" then
-    boostrap()
+    bootstrap()
 elseif command == "setup" then
     print("Setting up carl...")
 
@@ -291,7 +291,7 @@ elseif command == "setup" then
         writer.close()
     end
 
-    boostrap()
+    bootstrap()
 
     -- term.clear()
     print("Carl has been installed!")
