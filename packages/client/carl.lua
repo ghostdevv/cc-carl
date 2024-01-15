@@ -33,12 +33,6 @@ local function downloadFile(url, dest)
     file.close()
 end
 
---- Initialise an empty file at the specified path
---- @param path string
-local function touch(path)
-    fs.open(path, "w").close()
-end
-
 --- Print an error message in the format: "[prefix] message"
 --- @param prefix string
 --- @param message string
@@ -133,8 +127,9 @@ elseif command == "setup" then
     fs.makeDir(PACKAGES_DIR)
     fs.makeDir(PACKAGES_DIR)
 
-    touch(MANIFEST_FILE)
-    touch(REPOSITORIES_FILE)
+    if not fs.exists(REPOSITORIES_FILE) then
+        fs.open(REPOSITORIES_FILE, "w").close()
+    end
 
     -- Download carl
     downloadFile(CARL_URL, "/carl.lua")
