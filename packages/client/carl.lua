@@ -92,11 +92,7 @@ local function apiRequest(path)
     return data
 end
 
--- local command = ...
-
--- testing
-arg[2] = "yournan/asd"
-local command = "install"
+local command = ...
 
 print("Running command: " .. command)
 
@@ -104,7 +100,7 @@ if command == "install" then
     -- todo array
     local pkg = arg[2]
 
-    -- local repository, packageName = r_package:match("([^/]+)/([^/]+)")
+    print("Resolving \"" .. pkg .. "\"...")
 
     local pkg_data = apiRequest("/p/" .. pkg)
 
@@ -112,7 +108,24 @@ if command == "install" then
         return
     end
 
-    pp.pretty_print(pkg_data)
+    print("Found! Installing...")
+
+    local pkg_dir = PACKAGES_DIR .. "/" .. pkg_data["name"]
+
+    fs.makeDir(pkg_dir)
+
+    for i, file in ipairs(pkg_data["files"]) do
+        print("  Found file: \"" .. file["path"] .. "\"")
+
+        local path = pkg_dir .. "/" .. file["path"]
+        downloadFile(file["url"], path)
+    end
+
+    if pkg_data["cli"] ~= nil then
+        shell.setAlias(pkg_data["name"], pkg_dir .. "/" .. pkg_data["cli"])
+    end
+
+    -- todo set manifest
 elseif command == "bootstrap" then
     boostrap()
 elseif command == "setup" then
