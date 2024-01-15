@@ -3,7 +3,7 @@ local pp = require "cc.pretty"
 -- * Config
 
 local CARL_URL = "https://raw.githubusercontent.com/ghostdevv/cc-carl/main/packages/client/carl.lua"
-local API_URL = "https://stationery-minimize-discretion-key.trycloudflare.com"
+local API_URL = "https://ant-slightly-boom-power.trycloudflare.com"
 
 local CARL_DIR = "/.carl"
 
@@ -46,17 +46,15 @@ end
 local function api_request(path)
     local response = http.get(API_URL .. path)
 
-    -- todo handle 404
-
     if response == nil then
-        print("Error requesting json response")
+        print("[API Error] Unable to connect to API")
         return nil
     end
 
     local raw_json = response.readAll()
 
     if raw_json == nil then
-        print("Error getting raw json response")
+        print("[API Error] Empty response")
         return nil
     end
 
@@ -65,19 +63,23 @@ local function api_request(path)
     local data = textutils.unserialiseJSON(raw_json, {})
 
     if data == nil then
-        print("Error parsing json response")
+        print("[API Error] Unable to parse response")
+        return nil
+    end
+
+    if data["success"] == false then
+        print("[API Error] " .. data["message"])
         return nil
     end
 
     return data
 end
 
--- testing
--- arg[1] = "setup"
--- arg[2] = "glib/neofetch"
+-- local command = ...
 
-local command = ...
--- local command = "install"
+-- testing
+arg[2] = "yournan/asd"
+local command = "install"
 
 print("Running command: " .. command)
 

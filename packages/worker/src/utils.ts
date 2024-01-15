@@ -10,3 +10,11 @@ export function error(status: number, error: string) {
 		}),
 	});
 }
+
+export function success(data: Record<string, any>) {
+	return Response.json({ success: true, data }, { status: 200 });
+}
+
+export function fail(message: string) {
+	return Response.json({ success: false, message }, { status: 200 });
+}
