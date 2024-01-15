@@ -51,6 +51,11 @@ local function printError(prefix, message)
     local x, y = term.getCursorPos()
     term.setCursorPos(1, y + 1)
 end
+local function boostrap()
+    shell.setPath(shell.path() .. ":" .. PACKAGES_DIR)
+    -- todo load aliases from manifest
+end
+
 
 --- Make a GET request to the API
 --- @param path string
@@ -108,6 +113,8 @@ if command == "install" then
     end
 
     pp.pretty_print(pkg_data)
+elseif command == "bootstrap" then
+    boostrap()
 elseif command == "setup" then
     -- Set up directory
     fs.makeDir(CARL_DIR)
@@ -125,10 +132,45 @@ elseif command == "setup" then
     settings.set("shell.allow_disk_startup", false) -- disable disk drive startup file
     settings.save()
 
+    local CARL_STARTUP_CALL = "shell.run(\"carl bootstrap\")"
+
+    --- Check if the startup script has the carl call
+    --- @return boolean
+    local function startupHasCarl()
+        local f_startup_content = fs.open("/startup.lua", "r")
+        
+        if f_startup_content == nil then
+            return false
+        end
+        
+        local line = f_startup_content.readLine()
+        
+        while line ~= nil do
+            if line == CARL_STARTUP_CALL then
+                f_startup_content.close()
+                return true
+            end
+            
+            line = f_startup_content.readLine()
+        end
+
+        f_startup_content.close()
+
+        return false
+    end
+
+    local startup_has_carl = startupHasCarl()
+
+    if not startup_has_carl then
     -- todo prepend
     local file = fs.open("/startup.lua", "a")
-    file.write(STARTUP_SCRIPT)
+        file.writeLine("-- CARL STARTUP SCRIPT - DO NOT REMOVE")
+        file.writeLine(CARL_STARTUP_CALL)
     file.close()
+    end
 
-    shell.setPath(shell.path() .. ":" .. PACKAGES_DIR)
+    boostrap()
+
+    -- term.clear()
+    print("Carl has been installed!")
 end
