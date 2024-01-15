@@ -1,7 +1,7 @@
 import { HTTPException } from 'hono/http-exception';
 
 export function error(status: number, error: string) {
-	throw new HTTPException(status, {
+	return new HTTPException(status, {
 		res: new Response(JSON.stringify({ error }), {
 			status,
 			headers: {
@@ -12,9 +12,13 @@ export function error(status: number, error: string) {
 }
 
 export function success(data: Record<string, any>) {
-	return Response.json({ success: true, data }, { status: 200 });
+	return new HTTPException(200, {
+		res: Response.json({ success: true, data }, { status: 200 }),
+	});
 }
 
 export function fail(message: string) {
-	return Response.json({ success: false, message }, { status: 200 });
+	return new HTTPException(200, {
+		res: Response.json({ success: false, message }, { status: 200 }),
+	});
 }

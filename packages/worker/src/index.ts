@@ -1,9 +1,8 @@
-import { repositories } from './repositories';
+import { getRepository } from './repositories';
 import { error, fail } from './utils';
 import { logger } from 'hono/logger';
 import type { Env } from './types';
 import { cors } from 'hono/cors';
-import { klona } from 'klona';
 import { Hono } from 'hono';
 
 const server = new Hono<Env>();
@@ -14,7 +13,7 @@ server.use('*', cors({ origin: '*' }));
 //? File downloading proxy
 server.get('/file', async (c) => {
 	const { url } = c.req.query();
-	if (!url) return fail('Missing url query parameter');
+	if (!url) throw fail('Missing url query parameter');
 
 	const response = await fetch(url);
 	if (!response.ok || !response.body) throw error(400, 'Failed to fetch file');
@@ -24,19 +23,15 @@ server.get('/file', async (c) => {
 
 //? Get package information
 server.get('/p/:repository/:package', async (c) => {
-	const repository = repositories.find((r) => r.name == c.req.param('repository'));
-	if (!repository) return fail('Repository not found');
+	const workerURL = new URL(c.req.url);
 
-	// todo when we don't store repos in ts file don't clone obj like that
-	const pkg = klona(repository).packages.find((p) => p.name == c.req.param('package'));
-	if (!pkg) return fail('Package not found');
+	const repository = await getRepository(
+		c.req.param('repository'),
+		`${workerURL.origin}/file`,
+	);
 
-	const url = new URL(c.req.url);
-
-	pkg.files = pkg.files.map((file) => ({
-		url: `${url.origin}/file?url=${encodeURIComponent(file.url)}`,
-		path: file.path,
-	}));
+	const pkg = repository.packages.find((p) => p.name == c.req.param('package'));
+	if (!pkg) throw fail('Package not found');
 
 	return c.json(pkg);
 });
