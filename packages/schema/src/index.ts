@@ -16,20 +16,12 @@ export const packageSchema = z.object({
 		.string()
 		.regex(SEMVER_REGEX)
 		.describe('The current version of the package.'),
-	type: z
-		.union([
-			z
-				.literal('lib')
-				.describe(
-					"A library package designed to be used in other programs using 'require'.",
-				),
-			z
-				.literal('bin')
-				.describe(
-					'A binary package allows it to be run using the package name.',
-				),
-		])
-		.describe('Wether this package contains is a library or a binary.'),
+	cli: z
+		.string()
+		.or(z.null())
+		.describe(
+			'If your package has a cli entry point, the name of the file to be run.',
+		),
 	files: z
 		.array(
 			z.object({
@@ -42,9 +34,7 @@ export const packageSchema = z.object({
 					.describe('The relative path this file will be saved to.'),
 			}),
 		)
-		.describe(
-			'An array of files to be downloaded as part of this package.',
-		),
+		.describe('An array of files to be downloaded as part of this package.'),
 	// dependencies: z.array(z.string()),
 });
 

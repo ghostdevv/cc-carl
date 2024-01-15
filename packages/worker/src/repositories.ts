@@ -8,7 +8,7 @@ export const repositories: Repository[] = [
 			{
 				name: 'neofetch',
 				version: '0.1.0',
-				type: 'bin',
+				cli: 'neofetch.lua',
 				files: [
 					{
 						path: 'neofetch.lua',
