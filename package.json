@@ -1,4 +1,7 @@
 {
     "name": "@carl/monorepo",
-    "private": true
+    "private": true,
+    "scripts": {
+        "dev": "pnpm --parallel -r dev"
+    }
 }
