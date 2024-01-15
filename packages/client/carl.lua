@@ -169,11 +169,20 @@ elseif command == "setup" then
     local startup_has_carl = startupHasCarl()
 
     if not startup_has_carl then
-    -- todo prepend
-    local file = fs.open("/startup.lua", "a")
-        file.writeLine("-- CARL STARTUP SCRIPT - DO NOT REMOVE")
-        file.writeLine(CARL_STARTUP_CALL)
-    file.close()
+        local old_content = ""
+
+        if fs.exists("/startup.lua") then
+            local reader = fs.open("/startup.lua", "r")
+            old_content = reader.readAll() or ""
+            reader.close()
+        end
+
+        local writer = fs.open("/startup.lua", "w")
+        writer.writeLine("-- CARL STARTUP SCRIPT - DO NOT REMOVE")
+        writer.writeLine(CARL_STARTUP_CALL)
+        writer.writeLine("")
+        writer.write(old_content)
+        writer.close()
     end
 
     boostrap()
