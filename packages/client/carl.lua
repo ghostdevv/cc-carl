@@ -2,8 +2,10 @@ local pp = require "cc.pretty"
 
 -- * Config
 
-local CARL_URL = "https://raw.githubusercontent.com/ghostdevv/cc-carl/main/packages/client/carl.lua"
-local API_URL = "https://ant-slightly-boom-power.trycloudflare.com"
+local CARL_PKG_NAME = "carl"
+local CARL_VERSION = "0.1.0"
+local CARL_FILENAME = "carl.lua"
+
 
 local CARL_DIR = "/.carl"
 
@@ -12,12 +14,95 @@ local PACKAGES_DIR = CARL_DIR .. "/packages"
 local REPOSITORIES_FILE = CARL_DIR .. "/repositories"
 local MANIFEST_FILE = CARL_DIR .. "/manifest"
 
-local STARTUP_SCRIPT = ([[
--- CARL STARTUP SCRIPT - DO NOT REMOVE
-shell.setPath(shell.path() .. ":%s")
-]]):format(PACKAGES_DIR)
+
+-- * Classes
+
+--- Represents a entry in the manifest file
+--- @class ManifestEntry
+--- @field public name string
+--- @field public version string
+--- @field public cli string | nil
+local ManifestEntry = {}
+ManifestEntry.__index = ManifestEntry
+
+--- Construct a new ManifestEntry instance.
+--- @param name string
+--- @param version string
+--- @param cli string | nil
+--- @return ManifestEntry
+function ManifestEntry:new(name, version, cli)
+    local entry = {}
+    setmetatable(entry, self)
+
+    entry.name = name
+    entry.version = version
+    entry.cli = cli
+
+    return entry
+end
+
+--- Get the path to the package's root directory.
+--- @return string
+function ManifestEntry:getDir()
+    return PACKAGES_DIR .. "/" .. self.name
+end
+
+
+--- Functions for interacting with the carl manifest.
+--- @class Manifest
+--- @field private cache table | nil
+local Manifest = { cache = nil }
+
+--- Updates the manifest with the provided entry.
+--- @param entry ManifestEntry
+function Manifest:setManifestEntry(entry)
+    self.cache[entry.name] = {version = entry.version, cli = entry.cli}
+    self:save()
+end
+
+--- Load the manifest from disk.
+function Manifest:load()
+    local file = fs.open(MANIFEST_FILE, "r")
+
+    -- todo: add nil check
+    local data = file.readAll()
+    self.cache = textutils.unserialise(data)
+    -- todo: add error handling
+
+    file.close()
+end
+
+--- Save the manifest file to disk.
+function Manifest:save()
+    local file = fs.open(MANIFEST_FILE, "w")
+    local data = textutils.serialise(self.cache, {compact = true, allow_repetitions = false})
+    file.write(data)
+    file.close()
+end
+
+--- Get an array of every manifest entry.
+---@return ManifestEntry[]
+function Manifest:all()
+    --- @type ManifestEntry[]
+    local result = {}
+
+    for name, value in pairs(self.cache) do
+        local entry = ManifestEntry:new(name, value.version, value.cli)
+        table.insert(result, entry)
+    end
+
+    return result
+end
 
 -- * Functions
+
+--- Adds the package's cli entrypoint as an alias if it exists.
+--- @param entry ManifestEntry
+local function tryAddAlias(entry)
+    if entry.cli ~= nil then
+        shell.setAlias(entry.name, entry:getDir() .. "/" .. entry.cli)
+    end
+end
 
 --- Download the contents of url to dest
 --- @param url string
@@ -26,6 +111,7 @@ local function downloadFile(url, dest)
     local response = http.get(url, {}, true)
     local file = fs.open(dest, "wb")
 
+    -- todo: nil check
     local data = response.readAll()
     file.write(data)
 
@@ -45,11 +131,13 @@ local function printError(prefix, message)
     local x, y = term.getCursorPos()
     term.setCursorPos(1, y + 1)
 end
-local function boostrap()
-    shell.setPath(shell.path() .. ":" .. PACKAGES_DIR)
-    -- todo load aliases from manifest
-end
 
+--- Bootstrap function to be run on shell startup
+local function boostrap()
+    for _, entry in ipairs(Manifest:all()) do
+        tryAddAlias(entry)
+    end
+end
 
 --- Make a GET request to the API
 --- @param path string
@@ -86,6 +174,13 @@ local function apiRequest(path)
     return data
 end
 
+
+-- * Command Handling
+
+if fs.exists(MANIFEST_FILE) then
+    Manifest:load()
+end
+
 local command = ...
 
 if command == "install" then
@@ -102,27 +197,26 @@ if command == "install" then
 
     print("Found! Installing...")
 
-    local pkg_dir = PACKAGES_DIR .. "/" .. pkg_data["name"]
+    local entry = ManifestEntry:new(pkg_data["name"], pkg_data["version"], pkg_data["cli"])
 
+    local pkg_dir = entry:getDir()
     fs.makeDir(pkg_dir)
 
-    for i, file in ipairs(pkg_data["files"]) do
+    for _, file in ipairs(pkg_data["files"]) do
         print("  Found file: \"" .. file["path"] .. "\"")
 
         local path = pkg_dir .. "/" .. file["path"]
         downloadFile(file["url"], path)
     end
 
-    if pkg_data["cli"] ~= nil then
-        shell.setAlias(pkg_data["name"], pkg_dir .. "/" .. pkg_data["cli"])
-    end
-
-    -- todo set manifest
+    Manifest:setManifestEntry(entry)
+    tryAddAlias(entry)
 elseif command == "bootstrap" then
     boostrap()
 elseif command == "setup" then
     print("Setting up carl...")
 
+    -- Set up directories
     fs.makeDir(CARL_DIR)
     fs.makeDir(PACKAGES_DIR)
     fs.makeDir(PACKAGES_DIR)
@@ -131,15 +225,30 @@ elseif command == "setup" then
         fs.open(REPOSITORIES_FILE, "w").close()
     end
 
-    -- Download carl
-    downloadFile(CARL_URL, "/carl.lua")
+    if not fs.exists(MANIFEST_FILE) then
+        local manifest_file = fs.open(MANIFEST_FILE, "w")
+        manifest_file.write("{}")
+        manifest_file.close()
+        Manifest:load()
+    end
 
-    -- Setup path startup script
+
+    -- Download carl
+    local pkg_dir = PACKAGES_DIR .. "/" .. CARL_PKG_NAME
+
+    fs.makeDir(pkg_dir)
+    downloadFile(CARL_URL, pkg_dir .. "/" .. CARL_FILENAME)
+
+    -- Add carl to manifest
+    local carl_entry = ManifestEntry:new(CARL_PKG_NAME, CARL_VERSION, CARL_FILENAME)
+    Manifest:setManifestEntry(carl_entry)
+
+    -- Setup startup script
     -- todo: re-implement disk drive startup files
     settings.set("shell.allow_disk_startup", false) -- disable disk drive startup file
     settings.save()
 
-    local CARL_STARTUP_CALL = "shell.run(\"carl bootstrap\")"
+    local CARL_STARTUP_CALL = ("shell.run(\"%s/%s/%s bootstrap\")"):format(PACKAGES_DIR, CARL_PKG_NAME, CARL_FILENAME)
 
     --- Check if the startup script has the carl call
     --- @return boolean
