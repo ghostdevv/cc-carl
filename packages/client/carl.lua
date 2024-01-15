@@ -40,6 +40,16 @@ local function touch(path)
     fs.open(path, "w").close()
 end
 
+local function print_error(prefix, message)
+    term.setTextColour(colours.red)
+    term.write("[" .. prefix .. "]")
+    term.setTextColour(colours.white)
+    term.write(" " .. message)
+
+    local x, y = term.getCursorPos()
+    term.setCursorPos(1, y + 1)
+end
+
 --- Make a GET request to the API
 ---@param path string
 ---@return table | nil
@@ -47,14 +57,14 @@ local function api_request(path)
     local response = http.get(API_URL .. path)
 
     if response == nil then
-        print("[API Error] Unable to connect to API")
+        print_error("API Error", "Unable to connect to API")
         return nil
     end
 
     local raw_json = response.readAll()
 
     if raw_json == nil then
-        print("[API Error] Empty response")
+        print_error("API Error", "Empty response")
         return nil
     end
 
@@ -63,12 +73,12 @@ local function api_request(path)
     local data = textutils.unserialiseJSON(raw_json, {})
 
     if data == nil then
-        print("[API Error] Unable to parse response")
+        print_error("API Error", "Unable to parse response")
         return nil
     end
 
     if data["success"] == false then
-        print("[API Error] " .. data["message"])
+        print_error("API Error", data["message"])
         return nil
     end
 
