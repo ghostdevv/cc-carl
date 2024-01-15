@@ -34,7 +34,13 @@ server.get('/get/:repository/:package', async (c) => {
 	const pkg = repository.packages.find((p) => p.name == c.req.param('package'));
 	if (!pkg) throw fail('Package not found');
 
-	return c.json(pkg);
+	return c.json({
+		name: pkg.name,
+		repo: repository.name,
+		version: pkg.version,
+		cli: pkg.cli,
+		files: pkg.files,
+	});
 });
 
 export default server;
