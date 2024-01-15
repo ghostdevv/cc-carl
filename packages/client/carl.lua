@@ -8,15 +8,14 @@ local API_URL = "https://ant-slightly-boom-power.trycloudflare.com"
 local CARL_DIR = "/.carl"
 
 local PACKAGES_DIR = CARL_DIR .. "/packages"
-local BIN_DIR = CARL_DIR .. "/bin"
 
 local REPOSITORIES_FILE = CARL_DIR .. "/repositories"
 local MANIFEST_FILE = CARL_DIR .. "/manifest"
 
 local STARTUP_SCRIPT = ([[
 -- CARL STARTUP SCRIPT - DO NOT REMOVE
-shell.setPath(shell.path() .. ":%s:%s")
-]]):format(BIN_DIR, PACKAGES_DIR)
+shell.setPath(shell.path() .. ":%s")
+]]):format(PACKAGES_DIR)
 
 -- * Functions
 
@@ -109,14 +108,14 @@ if command == "install" then
 elseif command == "setup" then
     -- Set up directory
     fs.makeDir(CARL_DIR)
-    fs.makeDir(BIN_DIR)
+    fs.makeDir(PACKAGES_DIR)
     fs.makeDir(PACKAGES_DIR)
 
     touch(MANIFEST_FILE)
     touch(REPOSITORIES_FILE)
 
     -- Download carl
-    downloadFile(CARL_URL, BIN_DIR .. "/carl.lua")
+    downloadFile(CARL_URL, "/carl.lua")
 
     -- Setup path startup script
     -- todo: re-implement disk drive startup files
@@ -128,5 +127,5 @@ elseif command == "setup" then
     file.write(STARTUP_SCRIPT)
     file.close()
 
-    shell.setPath(shell.path() .. ":" .. BIN_DIR .. ":" .. PACKAGES_DIR)
+    shell.setPath(shell.path() .. ":" .. PACKAGES_DIR)
 end
