@@ -27,6 +27,7 @@ server.get('/p/:repository/:package', async (c) => {
 
 	const repository = await getRepository(
 		c.req.param('repository'),
+		c.env.REPOSITORY_CACHE,
 		`${workerURL.origin}/file`,
 	);
 

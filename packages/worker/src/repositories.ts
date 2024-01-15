@@ -1,10 +1,11 @@
-import { repositorySchema } from '@carl/schema';
+import { Repository, repositorySchema } from '@carl/schema';
 import { ofetch } from 'ofetch';
 import { fail } from './utils';
+import { Env } from './types';
 
-export const defaultRepositories = Object.freeze({
+export const defaultRepositories: Record<string, string> = Object.freeze({
 	glib: 'https://raw.githubusercontent.com/ghostdevv/cc-glib/main/carl-repo.json',
-}) as Record<string, string>;
+});
 
 // function normaliseURL(urlString: string) {
 // 	const url = new URL(urlString);
@@ -12,9 +13,25 @@ export const defaultRepositories = Object.freeze({
 // 	return url.toString();
 // }
 
-export async function getRepository(name: string, downloadProxyURL: string) {
+interface RepositoryCacheValue {
+	repository: Repository;
+	expires: number;
+}
+
+export async function getRepository(
+	name: string,
+	cache: Env['Bindings']['REPOSITORY_CACHE'],
+	downloadProxyURL: string,
+): Promise<Repository> {
 	const definitionUrl: string | undefined = defaultRepositories[name];
 	if (!definitionUrl) throw fail(`Repository ${name} not found`);
+
+	const cacheValue = await cache.get(definitionUrl);
+
+	if (cacheValue) {
+		const { expires, repository } = JSON.parse(cacheValue) as RepositoryCacheValue;
+		if (expires > Date.now()) return repository;
+	}
 
 	const rawDefinition = await ofetch(definitionUrl, {
 		responseType: 'json',
@@ -34,6 +51,14 @@ export async function getRepository(name: string, downloadProxyURL: string) {
 			})),
 		};
 	});
+
+	await cache.put(
+		definitionUrl,
+		JSON.stringify({
+			repository: definition,
+			expires: Date.now() + 300000, // five minutes,
+		}),
+	);
 
 	return definition;
 }

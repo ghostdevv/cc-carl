@@ -4,4 +4,6 @@ compatibility_date = "2024-01-15"
 
 main = "src/index.ts"
 
-kv_namespaces = []
+kv_namespaces = [
+    { binding = "REPOSITORY_CACHE", id = "e3f391949adb426dadd87bbd10a00a0c" }
+]
