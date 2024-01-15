@@ -8,11 +8,23 @@ importers:
 
   .: {}
 
+  packages/schema:
+    devDependencies:
+      zod:
+        specifier: ^3.22.4
+        version: 3.22.4
+
   packages/worker:
     devDependencies:
+      '@carl/schema':
+        specifier: workspace:^
+        version: link:../schema
       '@cloudflare/workers-types':
         specifier: ^4.20230801.0
         version: 4.20231218.0
+      hono:
+        specifier: ^3.12.3
+        version: 3.12.3
       typescript:
         specifier: ^5.1.6
         version: 5.3.3
@@ -494,6 +506,11 @@ packages:
 
   /glob-to-regexp@0.4.1:
     resolution: {integrity: sha512-lkX1HJXwyMcprw/5YUZc2s7DrpAiHB21/V+E1rHUrVNokkvB6bqMzT0VfV6/86ZNabt1k14YOIaT7nDvOX3Iiw==}
+    dev: true
+
+  /hono@3.12.3:
+    resolution: {integrity: sha512-eymmA0t4YzoBlaZhfcJiR6wC9tIdIgx68fdHYCpbKf0RMYXux+uJjwuZSAa2pKPNXZd6K6oGgizqaiLDvQ5jzg==}
+    engines: {node: '>=16.0.0'}
     dev: true
 
   /is-binary-path@2.1.0:
