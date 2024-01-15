@@ -208,6 +208,16 @@ if command == "install" then
 
     Manifest:setManifestEntry(entry)
     tryAddAlias(entry)
+elseif command == "uninstall" then
+    local pkg = arg[2]
+elseif command == "repo" then
+    local sub_command = arg[2]
+
+    if sub_command == "add" then
+        print("repo add")
+    elseif sub_command == "remove" then
+        print("repo remove")
+    end
 elseif command == "bootstrap" then
     bootstrap()
 elseif command == "setup" then
