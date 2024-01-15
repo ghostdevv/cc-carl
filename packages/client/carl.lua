@@ -126,10 +126,7 @@ local function printError(prefix, message)
     term.setTextColour(colours.red)
     term.write("[" .. prefix .. "]")
     term.setTextColour(colours.white)
-    term.write(" " .. message)
-
-    local x, y = term.getCursorPos()
-    term.setCursorPos(1, y + 1)
+    print(" " .. message)
 end
 
 --- Bootstrap function to be run on shell startup
