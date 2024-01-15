@@ -6,6 +6,9 @@ local CARL_PKG_NAME = "carl"
 local CARL_VERSION = "0.1.0"
 local CARL_FILENAME = "carl.lua"
 
+-- local CARL_URL = "https://raw.githubusercontent.com/ghostdevv/cc-carl/main/packages/client/carl.lua"
+local CARL_URL = "https://reactions-zdnet-murphy-cork.trycloudflare.com/carl.lua"
+local API_URL = "https://auditor-wisdom-mystery-motorola.trycloudflare.com"
 
 local CARL_DIR = "/.carl"
 
@@ -276,19 +279,19 @@ elseif command == "setup" then
     --- @return boolean
     local function startupHasCarl()
         local f_startup_content = fs.open("/startup.lua", "r")
-        
+
         if f_startup_content == nil then
             return false
         end
-        
+
         local line = f_startup_content.readLine()
-        
+
         while line ~= nil do
             if line == CARL_STARTUP_CALL then
                 f_startup_content.close()
                 return true
             end
-            
+
             line = f_startup_content.readLine()
         end
 
