@@ -14,7 +14,6 @@ local PACKAGES_DIR = CARL_DIR .. "/packages"
 local REPOSITORIES_FILE = CARL_DIR .. "/repositories"
 local MANIFEST_FILE = CARL_DIR .. "/manifest"
 
-
 -- * Classes
 
 --- Represents a entry in the manifest file
@@ -22,6 +21,7 @@ local MANIFEST_FILE = CARL_DIR .. "/manifest"
 --- @field public name string
 --- @field public version string
 --- @field public cli string | nil
+--- @field public repo string
 local ManifestEntry = {}
 ManifestEntry.__index = ManifestEntry
 
@@ -29,14 +29,16 @@ ManifestEntry.__index = ManifestEntry
 --- @param name string
 --- @param version string
 --- @param cli string | nil
+--- @param repo string
 --- @return ManifestEntry
-function ManifestEntry:new(name, version, cli)
+function ManifestEntry:new(name, version, cli, repo)
     local entry = {}
     setmetatable(entry, self)
 
     entry.name = name
     entry.version = version
     entry.cli = cli
+    entry.repo = repo
 
     return entry
 end
@@ -56,7 +58,7 @@ local Manifest = { cache = nil }
 --- Updates the manifest with the provided entry.
 --- @param entry ManifestEntry
 function Manifest:setManifestEntry(entry)
-    self.cache[entry.name] = {version = entry.version, cli = entry.cli}
+    self.cache[entry.name] = {version = entry.version, cli = entry.cli, repo = entry.repo}
     self:save()
 end
 
@@ -81,17 +83,30 @@ function Manifest:save()
 end
 
 --- Get an array of every manifest entry.
----@return ManifestEntry[]
+--- @return ManifestEntry[]
 function Manifest:all()
     --- @type ManifestEntry[]
     local result = {}
 
     for name, value in pairs(self.cache) do
-        local entry = ManifestEntry:new(name, value.version, value.cli)
+        local entry = ManifestEntry:new(name, value.version, value.cli, value.repo)
         table.insert(result, entry)
     end
 
     return result
+end
+
+--- Gets a manifest entry by name.
+--- @param name string
+--- @return ManifestEntry | nil
+function Manifest:get(name)
+    for key, value in pairs(self.cache) do
+        if key == name then
+            return ManifestEntry:new(name, value.version, value.cli, value.repo)
+        end
+    end
+
+    return nil
 end
 
 -- * Functions
@@ -194,7 +209,7 @@ if command == "install" then
 
     print("Found! Installing...")
 
-    local entry = ManifestEntry:new(pkg_data["name"], pkg_data["version"], pkg_data["cli"])
+    local entry = ManifestEntry:new(pkg_data["name"], pkg_data["version"], pkg_data["cli"], pkg_data["repo"])
 
     local pkg_dir = entry:getDir()
     fs.makeDir(pkg_dir)
@@ -247,7 +262,7 @@ elseif command == "setup" then
     downloadFile(CARL_URL, pkg_dir .. "/" .. CARL_FILENAME)
 
     -- Add carl to manifest
-    local carl_entry = ManifestEntry:new(CARL_PKG_NAME, CARL_VERSION, CARL_FILENAME)
+    local carl_entry = ManifestEntry:new(CARL_PKG_NAME, CARL_VERSION, CARL_FILENAME, "carl")
     Manifest:setManifestEntry(carl_entry)
 
     -- Setup startup script
