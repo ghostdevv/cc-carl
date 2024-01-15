@@ -102,7 +102,7 @@ if command == "install" then
 
     print("Resolving \"" .. pkg .. "\"...")
 
-    local pkg_data = apiRequest("/p/" .. pkg)
+    local pkg_data = apiRequest("/get/" .. pkg)
 
     if pkg_data == nil then
         return

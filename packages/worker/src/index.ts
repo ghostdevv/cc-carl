@@ -22,7 +22,7 @@ server.get('/file', async (c) => {
 });
 
 //? Get package information
-server.get('/p/:repository/:package', async (c) => {
+server.get('/get/:repository/:package', async (c) => {
 	const workerURL = new URL(c.req.url);
 
 	const repository = await getRepository(
