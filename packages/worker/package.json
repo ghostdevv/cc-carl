@@ -10,6 +10,7 @@
         "@carl/schema": "workspace:^",
         "@cloudflare/workers-types": "^4.20230801.0",
         "hono": "^3.12.3",
+        "klona": "^2.0.6",
         "typescript": "^5.1.6",
         "wrangler": "^3.4.0"
     }

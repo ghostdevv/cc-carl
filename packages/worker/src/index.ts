@@ -1,9 +1,10 @@
+import { repositories } from './repositories';
 import { logger } from 'hono/logger';
 import type { Env } from './types';
 import { cors } from 'hono/cors';
-import { Hono } from 'hono';
-import { repositories } from './repositories';
 import { error } from './utils';
+import { klona } from 'klona';
+import { Hono } from 'hono';
 
 const server = new Hono<Env>();
 
@@ -26,7 +27,8 @@ server.get('/p/:repository/:package', async (c) => {
 	const repository = repositories.find((r) => r.name == c.req.param('repository'));
 	if (!repository) throw error(404, 'Repository not found');
 
-	const pkg = repository.packages.find((p) => p.name == c.req.param('package'));
+	// todo when we don't store repos in ts file don't clone obj like that
+	const pkg = klona(repository).packages.find((p) => p.name == c.req.param('package'));
 	if (!pkg) throw error(404, 'Package not found');
 
 	const url = new URL(c.req.url);

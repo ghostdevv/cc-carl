@@ -25,6 +25,9 @@ importers:
       hono:
         specifier: ^3.12.3
         version: 3.12.3
+      klona:
+        specifier: ^2.0.6
+        version: 2.0.6
       typescript:
         specifier: ^5.1.6
         version: 5.3.3
@@ -535,6 +538,11 @@ packages:
   /is-number@7.0.0:
     resolution: {integrity: sha512-41Cifkg6e8TylSpdtTpeLVMqvSBEVzTttHvERD741+pnZ8ANv0004MRL43QKPDlK9cGvNp6NZWZUBlbGXYxxng==}
     engines: {node: '>=0.12.0'}
+    dev: true
+
+  /klona@2.0.6:
+    resolution: {integrity: sha512-dhG34DXATL5hSxJbIexCft8FChFXtmskoZYnoPWjXQuebWYCNkVeV3KkGegCK9CP1oswI/vQibS2GY7Em/sJJA==}
+    engines: {node: '>= 8'}
     dev: true
 
   /magic-string@0.25.9:
