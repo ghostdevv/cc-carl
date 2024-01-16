@@ -1,6 +1,7 @@
 {
     "recommendations": [
         "jackmacwindows.craftos-pc",
-        "jackmacwindows.vscode-computercraft"
+        "jackmacwindows.vscode-computercraft",
+        "sumneko.lua"
     ]
 }
