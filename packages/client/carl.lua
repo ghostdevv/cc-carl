@@ -366,15 +366,16 @@ elseif command == "setup" then
         manifest_file.write("{}")
         manifest_file.close()
     end
-
+    
     Manifest:load()
     Repositories:load()
 
     -- Download carl
     local pkg_dir = PACKAGES_DIR .. "/" .. CARL_PKG_NAME
+    local carl_path = pkg_dir .. "/" .. CARL_FILENAME
 
     fs.makeDir(pkg_dir)
-    downloadFile(CARL_URL, pkg_dir .. "/" .. CARL_FILENAME)
+    downloadFile(CARL_URL, carl_path)
 
     -- Add carl to manifest
     local carl_entry = ManifestEntry:new(CARL_PKG_NAME, CARL_VERSION, CARL_FILENAME, "carl")
@@ -385,7 +386,7 @@ elseif command == "setup" then
     settings.set("shell.allow_disk_startup", false) -- disable disk drive startup file
     settings.save()
 
-    local CARL_STARTUP_CALL = ("shell.run(\"%s/%s/%s bootstrap\")"):format(PACKAGES_DIR, CARL_PKG_NAME, CARL_FILENAME)
+    local CARL_STARTUP_CALL = ("shell.run(\"%s bootstrap\")"):format(carl_path)
 
     --- Check if the startup script has the carl call
     --- @return boolean
