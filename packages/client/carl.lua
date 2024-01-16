@@ -52,7 +52,6 @@ function ManifestEntry:getDir()
     return PACKAGES_DIR .. "/" .. self.name
 end
 
-
 --- Functions for interacting with the carl manifest.
 --- @class Manifest
 --- @field private cache table | nil
@@ -85,7 +84,7 @@ function Manifest:save()
     file.close()
 end
 
---- Get an array of every manifest entry.
+--- Get an array of every manifest entries
 --- @return ManifestEntry[]
 function Manifest:all()
     --- @type ManifestEntry[]
@@ -110,6 +109,66 @@ function Manifest:get(name)
     end
 
     return nil
+end
+
+--- Functions for interacting with the local repositories library.
+--- @class Repositories
+--- @field private cache table | nil
+local Repositories = { cache = nil }
+
+--- Updates the repositories library with the provided repository.
+--- @param name string
+--- @param url string
+function Repositories:set(name, url)
+    self.cache[name] = url
+    self:save()
+end
+
+--- Get a repository url by name
+--- @param name string
+--- @return string|nil
+function Repositories:get(name)
+    return self.cache[name]
+end
+
+--- Load the repositories from disk.
+function Repositories:load()
+    local file = fs.open(REPOSITORIES_FILE, "r")
+    local line = file.readLine()
+    self.cache = {}
+
+    while line ~= nil do
+        local name, url = line:match("([^ ]+) ([^ ]+)")
+        self.cache[name] = url
+
+        line = file.readLine()
+    end
+
+    file.close()
+end
+
+--- Get the repository map.
+--- @return table
+function Repositories:all()
+    return self.cache
+end
+
+--- Save the repositories file to disk.
+function Repositories:save()
+    local file = fs.open(REPOSITORIES_FILE, "w")
+
+    for name, url in pairs(self.cache) do
+        file.write(name .. " " .. url)
+    end
+    
+    file.close()
+end
+
+--- Remove the repository from the library.
+--- @param name string
+function Repositories:remove(name)
+--- @diagnostic disable-next-line: param-type-mismatch
+    self:set(name, nil)
 end
 
 -- * Functions
@@ -189,22 +248,30 @@ local function apiRequest(path)
     return data
 end
 
-
 -- * Command Handling
 
 if fs.exists(MANIFEST_FILE) then
     Manifest:load()
 end
 
+if fs.exists(REPOSITORIES_FILE) then
+    Repositories:load()
+end
+
 local command = ...
 
 if command == "install" then
     -- todo array
+    -- todo protect against conflicts
+
     local pkg = arg[2]
+    local repo = pkg:sub(1, pkg:find("/") - 1)
 
     print("Resolving \"" .. pkg .. "\"...")
 
-    local pkg_data = apiRequest("/get/" .. pkg)
+    local pkg_data = apiRequest(
+        string.format("/pkg/%s?definitionURL=%s", pkg, Repositories:get(repo) or "")
+    )
 
     if pkg_data == nil then
         return
@@ -232,9 +299,37 @@ elseif command == "repo" then
     local sub_command = arg[2]
 
     if sub_command == "add" then
-        print("repo add")
+        local url = arg[3]
+
+        if url == nil then
+            printError("ARGS", "Usage: carl repo add <url>")
+            return
+        end
+
+        local repo = apiRequest("/repo?definitionURL=" .. url)
+
+        if repo == nil then
+            return
+        end
+
+        Repositories:set(repo["name"], url)
+
+        print("Repository '" .. repo["name"] .. "' added!")
     elseif sub_command == "remove" then
-        print("repo remove")
+        local repo = arg[3]
+
+        if repo == nil then
+            printError("ARGS", "Usage: carl repo remove <name>")
+            return
+        end
+
+        Repositories:remove(repo)
+    elseif sub_command == "list" then
+        print("Repositories:")
+
+        for name, url in pairs(Repositories:all()) do
+            print(name .. " " .. url)
+        end
     end
 elseif command == "bootstrap" then
     bootstrap()
@@ -254,9 +349,10 @@ elseif command == "setup" then
         local manifest_file = fs.open(MANIFEST_FILE, "w")
         manifest_file.write("{}")
         manifest_file.close()
-        Manifest:load()
     end
 
+    Manifest:load()
+    Repositories:load()
 
     -- Download carl
     local pkg_dir = PACKAGES_DIR .. "/" .. CARL_PKG_NAME

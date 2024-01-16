@@ -1,4 +1,4 @@
-import { getRepository } from './repositories';
+import { getRepository, resolveRepositoryHost } from './repositories';
 import { error, fail } from './utils';
 import { logger } from 'hono/logger';
 import type { Env } from './types';
@@ -22,11 +22,16 @@ server.get('/file', async (c) => {
 });
 
 //? Get package information
-server.get('/get/:repository/:package', async (c) => {
+server.get('/pkg/:repository/:package', async (c) => {
 	const workerURL = new URL(c.req.url);
 
-	const repository = await getRepository(
+	const host = resolveRepositoryHost(
 		c.req.param('repository'),
+		c.req.query('definitionURL'),
+	);
+
+	const repository = await getRepository(
+		host,
 		c.env.REPOSITORY_CACHE,
 		`${workerURL.origin}/file`,
 	);
@@ -41,6 +46,23 @@ server.get('/get/:repository/:package', async (c) => {
 		cli: pkg.cli,
 		files: pkg.files,
 	});
+});
+
+server.get('/repo/:repository?', async (c) => {
+	const workerURL = new URL(c.req.url);
+
+	const host = resolveRepositoryHost(
+		c.req.param('repository'),
+		c.req.query('definitionURL'),
+	);
+
+	const repository = await getRepository(
+		host,
+		c.env.REPOSITORY_CACHE,
+		`${workerURL.origin}/file`,
+	);
+
+	return c.json(repository);
 });
 
 export default server;
