@@ -13,4 +13,8 @@
     ],
     "Lua.workspace.maxPreload": 2000,
     "Lua.workspace.preloadFileSize": 1000,
+    "[lua]": {
+        "editor.formatOnSave": true,
+        "editor.defaultFormatter": "sumneko.lua"
+    }
 }
