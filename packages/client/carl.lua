@@ -17,160 +17,6 @@ local PACKAGES_DIR = CARL_DIR .. "/packages"
 local REPOSITORIES_FILE = CARL_DIR .. "/repositories"
 local MANIFEST_FILE = CARL_DIR .. "/manifest"
 
--- * Classes
-
---- Represents a entry in the manifest file
---- @class ManifestEntry
---- @field public name string
---- @field public version string
---- @field public cli string | nil
---- @field public repo string
-local ManifestEntry = {}
-ManifestEntry.__index = ManifestEntry
-
---- Construct a new ManifestEntry instance.
---- @param name string
---- @param version string
---- @param cli string | nil
---- @param repo string
---- @return ManifestEntry
-function ManifestEntry:new(name, version, cli, repo)
-    local entry = {}
-    setmetatable(entry, self)
-
-    entry.name = name
-    entry.version = version
-    entry.cli = cli
-    entry.repo = repo
-
-    return entry
-end
-
---- Get the path to the package's root directory.
---- @return string
-function ManifestEntry:getDir()
-    return PACKAGES_DIR .. "/" .. self.name
-end
-
---- Functions for interacting with the carl manifest.
---- @class Manifest
---- @field private cache table | nil
-local Manifest = { cache = nil }
-
---- Updates the manifest with the provided entry.
---- @param entry ManifestEntry
-function Manifest:setManifestEntry(entry)
-    self.cache[entry.name] = {version = entry.version, cli = entry.cli, repo = entry.repo}
-    self:save()
-end
-
---- Load the manifest from disk.
-function Manifest:load()
-    local file = fs.open(MANIFEST_FILE, "r")
-
-    -- todo: add nil check
-    local data = file.readAll()
-    self.cache = textutils.unserialise(data)
-    -- todo: add error handling
-
-    file.close()
-end
-
---- Save the manifest file to disk.
-function Manifest:save()
-    local file = fs.open(MANIFEST_FILE, "w")
-    local data = textutils.serialise(self.cache, {compact = true, allow_repetitions = false})
-    file.write(data)
-    file.close()
-end
-
---- Get an array of every manifest entries
---- @return ManifestEntry[]
-function Manifest:all()
-    --- @type ManifestEntry[]
-    local result = {}
-
-    for name, value in pairs(self.cache) do
-        local entry = ManifestEntry:new(name, value.version, value.cli, value.repo)
-        table.insert(result, entry)
-    end
-
-    return result
-end
-
---- Gets a manifest entry by name.
---- @param name string
---- @return ManifestEntry | nil
-function Manifest:get(name)
-    for key, value in pairs(self.cache) do
-        if key == name then
-            return ManifestEntry:new(name, value.version, value.cli, value.repo)
-        end
-    end
-
-    return nil
-end
-
---- Functions for interacting with the local repositories library.
---- @class Repositories
---- @field private cache table | nil
-local Repositories = { cache = nil }
-
---- Updates the repositories library with the provided repository.
---- @param name string
---- @param url string
-function Repositories:set(name, url)
-    self.cache[name] = url
-    self:save()
-end
-
---- Get a repository url by name
---- @param name string
---- @return string|nil
-function Repositories:get(name)
-    return self.cache[name]
-end
-
---- Load the repositories from disk.
-function Repositories:load()
-    local file = fs.open(REPOSITORIES_FILE, "r")
-    local line = file.readLine()
-    self.cache = {}
-
-    while line ~= nil do
-        local name, url = line:match("([^ ]+) ([^ ]+)")
-        self.cache[name] = url
-
-        line = file.readLine()
-    end
-
-    file.close()
-end
-
---- Get the repository map.
---- @return table
-function Repositories:all()
-    return self.cache
-end
-
---- Save the repositories file to disk.
-function Repositories:save()
-    local file = fs.open(REPOSITORIES_FILE, "w")
-
-    for name, url in pairs(self.cache) do
-        file.write(name .. " " .. url)
-    end
-    
-    file.close()
-end
-
---- Remove the repository from the library.
---- @param name string
-function Repositories:remove(name)
---- @diagnostic disable-next-line: param-type-mismatch
-    self:set(name, nil)
-end
-
 -- * Functions
 
 --- Adds the package's cli entrypoint as an alias if it exists.
@@ -208,7 +54,7 @@ end
 
 --- Construct a URL
 --- @param path string
---- @param query table<string, string|nil>|nil
+--- @param query table<string, string?>?
 function URL(path, query)
     local queryString = ""
 
@@ -221,17 +67,10 @@ function URL(path, query)
     return path .. queryString
 end
 
---- Bootstrap function to be run on shell startup
-local function bootstrap()
-    for _, entry in ipairs(Manifest:all()) do
-        tryAddAlias(entry)
-    end
-end
-
 --- Make a GET request to the API
 --- @param path string
---- @param query table<string, string|nil>|nil
---- @return table | nil
+--- @param query table<string, string?>?
+--- @return table?
 local function apiRequest(path, query)
     local response = http.get(URL(API_URL .. path, query))
 
@@ -264,7 +103,178 @@ local function apiRequest(path, query)
     return data
 end
 
+--- Create a copy of the specified table.
+--- @param src table
+--- @param dst table?
+--- @return table
+local function shallow_copy(src, dst)
+    local result = dst or {}
+    for k, v in pairs(src) do
+        result[k] = v
+    end
+    return result
+end
+
+-- * Classes
+
+--- Represents a entry in the manifest file
+--- @class ManifestEntry
+--- @field public name string
+--- @field public version string
+--- @field public cli string?
+--- @field public repo string
+local ManifestEntry = {}
+ManifestEntry.__index = ManifestEntry
+
+--- Construct a new ManifestEntry instance.
+--- @param name string?
+--- @param version string?
+--- @param cli string?
+--- @param repo string?
+--- @return ManifestEntry
+function ManifestEntry:new(name, version, cli, repo)
+    local entry = {}
+    setmetatable(entry, self)
+
+    entry.name = name
+    entry.version = version
+    entry.cli = cli
+    entry.repo = repo
+
+    return entry
+end
+
+--- Get the path to the package's root directory.
+--- @return string
+function ManifestEntry:getDir()
+    return PACKAGES_DIR .. "/" .. self.name
+end
+
+--- Functions for interacting with the carl manifest.
+--- @class Manifest
+--- @field private cache table?
+local Manifest = { cache = nil }
+
+--- Updates the manifest with the provided entry.
+--- @param entry ManifestEntry
+function Manifest:setManifestEntry(entry)
+    local copy = shallow_copy(entry)
+    copy.name = nil
+
+    self.cache[entry.name] = copy
+    self:save()
+end
+
+--- Load the manifest from disk.
+function Manifest:load()
+    local file = fs.open(MANIFEST_FILE, "r")
+
+    -- todo: add nil check
+    local data = file.readAll()
+    self.cache = textutils.unserialise(data)
+    -- todo: add error handling
+
+    file.close()
+end
+
+--- Save the manifest file to disk.
+function Manifest:save()
+    local file = fs.open(MANIFEST_FILE, "w")
+    local data = textutils.serialise(self.cache, { compact = true, allow_repetitions = false })
+    file.write(data)
+    file.close()
+end
+
+--- Get an array of every manifest entries
+--- @return ManifestEntry[]
+function Manifest:all()
+    --- @type ManifestEntry[]
+    local result = {}
+
+    for name, value in pairs(self.cache) do
+        local entry = ManifestEntry:new(name)
+        result:insert(shallow_copy(value, entry))
+    end
+
+    return result
+end
+
+--- Gets a manifest entry by name.
+--- @param name string
+--- @return ManifestEntry?
+function Manifest:get(name)
+    local result, data = ManifestEntry:new(name), self.cache[name]
+    return data and shallow_copy(data, result)
+end
+
+--- Functions for interacting with the local repositories library.
+--- @class Repositories
+--- @field private cache table?
+local Repositories = { cache = nil }
+
+--- Updates the repositories library with the provided repository.
+--- @param name string
+--- @param url string
+function Repositories:set(name, url)
+    self.cache[name] = url
+    self:save()
+end
+
+--- Get a repository url by name
+--- @param name string
+--- @return string?
+function Repositories:get(name)
+    return self.cache[name]
+end
+
+--- Load the repositories from disk.
+function Repositories:load()
+    local file = fs.open(REPOSITORIES_FILE, "r")
+    local line = file.readLine()
+    self.cache = {}
+
+    while line ~= nil do
+        local name, url = line:match("([^ ]+) ([^ ]+)")
+        self.cache[name] = url
+
+        line = file.readLine()
+    end
+
+    file.close()
+end
+
+--- Get the repository map.
+--- @return table
+function Repositories:all()
+    return self.cache
+end
+
+--- Save the repositories file to disk.
+function Repositories:save()
+    local file = fs.open(REPOSITORIES_FILE, "w")
+
+    for name, url in pairs(self.cache) do
+        file.write(name .. " " .. url)
+    end
+
+    file.close()
+end
+
+--- Remove the repository from the library.
+--- @param name string
+function Repositories:remove(name)
+    --- @diagnostic disable-next-line: param-type-mismatch
+    self:set(name, nil)
+end
+
 -- * Command Handling
+
+--- Bootstrap function to be run on shell startup
+local function bootstrap()
+    for _, entry in ipairs(Manifest:all()) do
+        tryAddAlias(entry)
+    end
+end
 
 if fs.exists(MANIFEST_FILE) then
     Manifest:load()
@@ -366,7 +376,7 @@ elseif command == "setup" then
         manifest_file.write("{}")
         manifest_file.close()
     end
-    
+
     Manifest:load()
     Repositories:load()
 
