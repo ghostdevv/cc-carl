@@ -206,6 +206,21 @@ local function printError(prefix, message)
     print(" " .. message)
 end
 
+--- Construct a URL
+--- @param path string
+--- @param query table<string, string|nil>|nil
+function URL(path, query)
+    local queryString = ""
+
+    if query then
+        for key, value in pairs(query) do
+            queryString = queryString .. (queryString:len() == 0 and "?" or "&") .. key .. "=" .. value
+        end
+    end
+
+    return path .. queryString
+end
+
 --- Bootstrap function to be run on shell startup
 local function bootstrap()
     for _, entry in ipairs(Manifest:all()) do
@@ -215,9 +230,10 @@ end
 
 --- Make a GET request to the API
 --- @param path string
+--- @param query table<string, string|nil>|nil
 --- @return table | nil
-local function apiRequest(path)
-    local response = http.get(API_URL .. path)
+local function apiRequest(path, query)
+    local response = http.get(URL(API_URL .. path, query))
 
     if response == nil then
         printError("API Error", "Unable to connect to API")
@@ -269,9 +285,9 @@ if command == "install" then
 
     print("Resolving \"" .. pkg .. "\"...")
 
-    local pkg_data = apiRequest(
-        string.format("/pkg/%s?definitionURL=%s", pkg, Repositories:get(repo) or "")
-    )
+    local pkg_data = apiRequest("/pkg/" .. pkg, {
+        definitionURL = Repositories:get(repo)
+    })
 
     if pkg_data == nil then
         return
