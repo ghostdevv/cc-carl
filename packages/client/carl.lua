@@ -7,7 +7,7 @@ local CARL_VERSION = "0.1.0"
 local CARL_FILENAME = "carl.lua"
 
 local CARL_URL = "https://raw.githubusercontent.com/ghostdevv/cc-carl/main/packages/client/carl.lua"
-local API_URL = "https://carl.willow.sh/"
+local API_URL = "https://carl.willow.sh"
 
 local CARL_DIR = "/.carl"
 
