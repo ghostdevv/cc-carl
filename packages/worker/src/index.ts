@@ -10,6 +10,19 @@ const server = new Hono<Env>();
 server.use('*', logger());
 server.use('*', cors({ origin: '*' }));
 
+//? Install proxy
+server.get('/install', async (c) => {
+	const response = await fetch(
+		'https://raw.githubusercontent.com/ghostdevv/cc-carl/main/packages/client/installer.lua',
+	);
+
+	return c.body(response.body, {
+		headers: {
+			'Content-Type': 'text/lua',
+		},
+	});
+});
+
 //? File downloading proxy
 server.get('/file', async (c) => {
 	const { url } = c.req.query();
