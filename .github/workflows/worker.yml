@@ -1,0 +1,35 @@
+name: Deploy Carl Worker
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - packages/worker/**
+  workflow_dispatch:
+
+jobs:
+  publish-worker:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Setup Node 18
+        uses: actions/setup-node@v1
+        with:
+          node-version: 18
+          registry-url: https://registry.npmjs.org/
+
+      - name: Setup PNPM
+        uses: pnpm/action-setup@v2.0.1
+        with:
+            version: 8.12.1
+
+      - name: Install
+        run: pnpm install
+
+      - name: Deploy
+        run: pnpm run --filter worker -r deploy
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_TOKEN }}
