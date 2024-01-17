@@ -2,11 +2,6 @@ local pp = require "cc.pretty"
 
 -- * Config
 
-local CARL_PKG_NAME = "carl"
-local CARL_VERSION = "0.1.0"
-local CARL_FILENAME = "carl.lua"
-
-local CARL_URL = "https://raw.githubusercontent.com/ghostdevv/cc-carl/main/packages/client/carl.lua"
 local API_URL = "https://carl.willow.sh"
 
 local CARL_DIR = "/.carl"
@@ -358,91 +353,4 @@ elseif command == "repo" then
     end
 elseif command == "bootstrap" then
     bootstrap()
-elseif command == "setup" then
-    print("Setting up carl...")
-
-    -- Set up directories
-    fs.makeDir(CARL_DIR)
-    fs.makeDir(PACKAGES_DIR)
-    fs.makeDir(PACKAGES_DIR)
-
-    if not fs.exists(REPOSITORIES_FILE) then
-        fs.open(REPOSITORIES_FILE, "w").close()
-    end
-
-    if not fs.exists(MANIFEST_FILE) then
-        local manifest_file = fs.open(MANIFEST_FILE, "w")
-        manifest_file.write("{}")
-        manifest_file.close()
-    end
-
-    Manifest:load()
-    Repositories:load()
-
-    -- Download carl
-    local pkg_dir = PACKAGES_DIR .. "/" .. CARL_PKG_NAME
-    local carl_path = pkg_dir .. "/" .. CARL_FILENAME
-
-    fs.makeDir(pkg_dir)
-    downloadFile(CARL_URL, carl_path)
-
-    -- Add carl to manifest
-    local carl_entry = ManifestEntry:new(CARL_PKG_NAME, CARL_VERSION, CARL_FILENAME, "carl")
-    Manifest:setManifestEntry(carl_entry)
-
-    -- Setup startup script
-    -- todo: re-implement disk drive startup files
-    settings.set("shell.allow_disk_startup", false) -- disable disk drive startup file
-    settings.save()
-
-    local CARL_STARTUP_CALL = ("shell.run(\"%s bootstrap\")"):format(carl_path)
-
-    --- Check if the startup script has the carl call
-    --- @return boolean
-    local function startupHasCarl()
-        local f_startup_content = fs.open("/startup.lua", "r")
-
-        if f_startup_content == nil then
-            return false
-        end
-
-        local line = f_startup_content.readLine()
-
-        while line ~= nil do
-            if line == CARL_STARTUP_CALL then
-                f_startup_content.close()
-                return true
-            end
-
-            line = f_startup_content.readLine()
-        end
-
-        f_startup_content.close()
-
-        return false
-    end
-
-    local startup_has_carl = startupHasCarl()
-
-    if not startup_has_carl then
-        local old_content = ""
-
-        if fs.exists("/startup.lua") then
-            local reader = fs.open("/startup.lua", "r")
-            old_content = reader.readAll() or ""
-            reader.close()
-        end
-
-        local writer = fs.open("/startup.lua", "w")
-        writer.writeLine("-- CARL STARTUP SCRIPT - DO NOT REMOVE")
-        writer.writeLine(CARL_STARTUP_CALL)
-        writer.writeLine("")
-        writer.write(old_content)
-        writer.close()
-    end
-
-    bootstrap()
-
-    -- term.clear()
-    print("Carl has been installed!")
 end
