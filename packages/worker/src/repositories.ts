@@ -92,6 +92,12 @@ export async function getRepository(
 		};
 	});
 
+	for (const pkg of definition.packages) {
+		if (pkg.cli && !pkg.files.find((file) => file.path == pkg.cli)) {
+			throw fail('Package CLI not found in files');
+		}
+	}
+
 	await cache.put(
 		host.url,
 		JSON.stringify({
