@@ -192,7 +192,7 @@ function Manifest:all()
 
     for name, value in pairs(self.cache) do
         local entry = ManifestEntry:new(name)
-        result:insert(shallow_copy(value, entry))
+        table.insert(result, shallow_copy(value, entry))
     end
 
     return result
