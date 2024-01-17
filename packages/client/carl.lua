@@ -1,12 +1,5 @@
-local pp = require "cc.pretty"
-
 -- * Config
 
-local CARL_PKG_NAME = "carl"
-local CARL_VERSION = "0.1.0"
-local CARL_FILENAME = "carl.lua"
-
-local CARL_URL = "https://raw.githubusercontent.com/ghostdevv/cc-carl/main/packages/client/carl.lua"
 local API_URL = "https://carl.willow.sh"
 
 local CARL_DIR = "/.carl"
@@ -26,29 +19,39 @@ local function tryAddAlias(entry)
     end
 end
 
+--- Pretty print an message in the format: "[prefix] message"
+--- @param type "error" | "info" | "success"
+--- @param prefix string
+--- @param message string
+local function message(type, prefix, message)
+    term.setTextColour(colours[type == "error" and "red" or type == "info" and "orange" or "green"])
+    term.write("[" .. prefix .. "]")
+    term.setTextColour(colours.white)
+    print(" " .. message)
+end
+
 --- Download the contents of url to dest
 --- @param url string
 --- @param dest string
 local function downloadFile(url, dest)
     local response = http.get(url, {}, true)
-    local file = fs.open(dest, "wb")
 
-    -- todo: nil check
+    if response == nil then
+        message("error", "DWN", ("Unable to download file from \"%s\""):format(url))
+        return
+    end
+
     local data = response.readAll()
-    file.write(data)
-
     response.close()
-    file.close()
-end
 
---- Print an error message in the format: "[prefix] message"
---- @param prefix string
---- @param message string
-local function printError(prefix, message)
-    term.setTextColour(colours.red)
-    term.write("[" .. prefix .. "]")
-    term.setTextColour(colours.white)
-    print(" " .. message)
+    if data == nil then
+        message("error", "DWN", ("Empty response from \"%s\""):format(url))
+        return
+    end
+
+    local file = fs.open(dest, "wb")
+    file.write(data)
+    file.close()
 end
 
 --- Construct a URL
@@ -74,14 +77,14 @@ local function apiRequest(path, query)
     local response = http.get(URL(API_URL .. path, query))
 
     if response == nil then
-        printError("API Error", "Unable to connect to API")
+        message("error", "API", "Unable to connect to API")
         return nil
     end
 
     local raw_json = response.readAll()
 
     if raw_json == nil then
-        printError("API Error", "Empty response")
+        message("error", "API", "Empty response")
         return nil
     end
 
@@ -90,12 +93,12 @@ local function apiRequest(path, query)
     local data = textutils.unserialiseJSON(raw_json, {})
 
     if data == nil then
-        printError("API Error", "Unable to parse response")
+        message("error", "API", "Unable to parse response")
         return nil
     end
 
     if data["success"] == false then
-        printError("API Error", data["message"])
+        message("error", "API", data["message"])
         return nil
     end
 
@@ -275,13 +278,8 @@ local function bootstrap()
     end
 end
 
-if fs.exists(MANIFEST_FILE) then
-    Manifest:load()
-end
-
-if fs.exists(REPOSITORIES_FILE) then
-    Repositories:load()
-end
+Manifest:load()
+Repositories:load()
 
 local command = ...
 
@@ -292,7 +290,7 @@ if command == "install" then
     local pkg = arg[2]
     local repo = pkg:sub(1, pkg:find("/") - 1)
 
-    print("Resolving \"" .. pkg .. "\"...")
+    message("info", "PKG", ("Resolving \"%s\""):format(pkg))
 
     local pkg_data = apiRequest("/pkg/" .. pkg, {
         definitionURL = Repositories:get(repo)
@@ -302,7 +300,9 @@ if command == "install" then
         return
     end
 
-    print("Found! Installing...")
+    message("success", "PKG",
+        ("Found v%s with %d file%s"):format(pkg_data["version"], #pkg_data["files"],
+            #pkg_data["files"] == 1 and "" or "s"))
 
     local entry = ManifestEntry:new(pkg_data["name"], pkg_data["version"], pkg_data["cli"], pkg_data["repo"])
 
@@ -310,14 +310,26 @@ if command == "install" then
     fs.makeDir(pkg_dir)
 
     for _, file in ipairs(pkg_data["files"]) do
-        print("  Found file: \"" .. file["path"] .. "\"")
-
         local path = pkg_dir .. "/" .. file["path"]
+
+        message("info", "DWN", file["path"])
         downloadFile(file["url"], path)
+        message("success", "DWN", ("Downloaded %s (%dB)"):format(file["path"], fs.getSize(path)))
     end
 
     Manifest:setManifestEntry(entry)
+
     tryAddAlias(entry)
+
+    print("")
+    term.write("Installed ")
+    term.setTextColour(colours.yellow)
+    term.write(pkg)
+    term.setTextColor(colours.white)
+    term.write("!")
+    term.setTextColour(colours.grey)
+    print(" (v" .. pkg_data["version"] .. ")")
+    term.setTextColour(colours.white)
 elseif command == "uninstall" then
     local pkg = arg[2]
 elseif command == "repo" then
@@ -327,7 +339,7 @@ elseif command == "repo" then
         local url = arg[3]
 
         if url == nil then
-            printError("ARGS", "Usage: carl repo add <url>")
+            message("error", "ARGS", "Usage: carl repo add <url>")
             return
         end
 
@@ -344,7 +356,7 @@ elseif command == "repo" then
         local repo = arg[3]
 
         if repo == nil then
-            printError("ARGS", "Usage: carl repo remove <name>")
+            message("error", "ARGS", "Usage: carl repo remove <name>")
             return
         end
 
@@ -358,91 +370,4 @@ elseif command == "repo" then
     end
 elseif command == "bootstrap" then
     bootstrap()
-elseif command == "setup" then
-    print("Setting up carl...")
-
-    -- Set up directories
-    fs.makeDir(CARL_DIR)
-    fs.makeDir(PACKAGES_DIR)
-    fs.makeDir(PACKAGES_DIR)
-
-    if not fs.exists(REPOSITORIES_FILE) then
-        fs.open(REPOSITORIES_FILE, "w").close()
-    end
-
-    if not fs.exists(MANIFEST_FILE) then
-        local manifest_file = fs.open(MANIFEST_FILE, "w")
-        manifest_file.write("{}")
-        manifest_file.close()
-    end
-
-    Manifest:load()
-    Repositories:load()
-
-    -- Download carl
-    local pkg_dir = PACKAGES_DIR .. "/" .. CARL_PKG_NAME
-    local carl_path = pkg_dir .. "/" .. CARL_FILENAME
-
-    fs.makeDir(pkg_dir)
-    downloadFile(CARL_URL, carl_path)
-
-    -- Add carl to manifest
-    local carl_entry = ManifestEntry:new(CARL_PKG_NAME, CARL_VERSION, CARL_FILENAME, "carl")
-    Manifest:setManifestEntry(carl_entry)
-
-    -- Setup startup script
-    -- todo: re-implement disk drive startup files
-    settings.set("shell.allow_disk_startup", false) -- disable disk drive startup file
-    settings.save()
-
-    local CARL_STARTUP_CALL = ("shell.run(\"%s bootstrap\")"):format(carl_path)
-
-    --- Check if the startup script has the carl call
-    --- @return boolean
-    local function startupHasCarl()
-        local f_startup_content = fs.open("/startup.lua", "r")
-
-        if f_startup_content == nil then
-            return false
-        end
-
-        local line = f_startup_content.readLine()
-
-        while line ~= nil do
-            if line == CARL_STARTUP_CALL then
-                f_startup_content.close()
-                return true
-            end
-
-            line = f_startup_content.readLine()
-        end
-
-        f_startup_content.close()
-
-        return false
-    end
-
-    local startup_has_carl = startupHasCarl()
-
-    if not startup_has_carl then
-        local old_content = ""
-
-        if fs.exists("/startup.lua") then
-            local reader = fs.open("/startup.lua", "r")
-            old_content = reader.readAll() or ""
-            reader.close()
-        end
-
-        local writer = fs.open("/startup.lua", "w")
-        writer.writeLine("-- CARL STARTUP SCRIPT - DO NOT REMOVE")
-        writer.writeLine(CARL_STARTUP_CALL)
-        writer.writeLine("")
-        writer.write(old_content)
-        writer.close()
-    end
-
-    bootstrap()
-
-    -- term.clear()
-    print("Carl has been installed!")
 end
