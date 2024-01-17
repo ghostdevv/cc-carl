@@ -108,7 +108,7 @@ for _, file in ipairs(pkg["files"]) do
         return
     end
 
-    local file = fs.open(CARL_PACKAGE_DIR .. file["path"], "wb")
+    local file = fs.open(CARL_PACKAGE_DIR .. "/" .. file["path"], "wb")
 
     local data = response.readAll()
 
@@ -125,6 +125,7 @@ end
 
 -- ? Set up directories
 fs.makeDir(CARL_DIR)
+fs.makeDir(PACKAGES_DIR)
 
 -- ? Repositories file
 fs.open(REPOSITORIES_FILE, "w").close()
@@ -158,6 +159,6 @@ if not startup_has_carl then
     writer.close()
 end
 
-shell.setAlias("carl", CARL_PACKAGE_DIR .. pkg["cli"])
+shell.setAlias("carl", CARL_PACKAGE_DIR .. "/" .. pkg["cli"])
 
 print("Carl has been installed!")
