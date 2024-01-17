@@ -1,20 +1,23 @@
--- * Vars
-
-local CARL_STARTUP_CALL = "shell.run(\"/.carl/packages/carl/carl.lua bootstrap\")"
-
-local CARL_DIR = "/.carl"
-
-local PACKAGES_DIR = CARL_DIR .. "/packages"
-local CARL_PACKAGE_DIR = PACKAGES_DIR .. "/carl"
-
-local REPOSITORIES_FILE = CARL_DIR .. "/repositories"
-local MANIFEST_FILE = CARL_DIR .. "/manifest"
-
 -- * Functions
 
+--- Join path segments together
+--- @param ... string
+--- @return string
+local function join(...)
+    --- @type string
+    local final = ""
+
+    for _, segment in ipairs({ ... }) do
+        final = final .. (("/" .. segment):gsub("/+", "/"):gsub("/$", ""))
+    end
+
+    return final
+end
+
 --- Check if the startup script has the carl call
+--- @param search_str string The string to search for in startup script
 --- @return boolean
-local function startupHasCarl()
+local function startupHasCarl(search_str)
     local f_startup_content = fs.open("/startup.lua", "r")
 
     if f_startup_content == nil then
@@ -24,7 +27,7 @@ local function startupHasCarl()
     local line = f_startup_content.readLine()
 
     while line ~= nil do
-        if line == CARL_STARTUP_CALL then
+        if line == search_str then
             f_startup_content.close()
             return true
         end
@@ -81,6 +84,18 @@ local function getCarlPkg()
     return data
 end
 
+-- * Vars
+
+local CARL_STARTUP_CALL = "shell.run(\"/.carl/packages/carl/carl.lua bootstrap\")"
+
+local CARL_DIR = "/.carl"
+
+local PACKAGES_DIR = join(CARL_DIR, "/packages")
+local CARL_PACKAGE_DIR = join(PACKAGES_DIR, "/carl")
+
+local REPOSITORIES_FILE = join(CARL_DIR, "/repositories")
+local MANIFEST_FILE = join(CARL_DIR, "/manifest")
+
 -- * Script
 
 if fs.exists(".carl") then
@@ -99,7 +114,7 @@ end
 print("Installing Carl v" .. pkg["version"])
 
 for _, file in ipairs(pkg["files"]) do
-    print("  Found file: \"" .. file["path"] .. "\"")
+    print(("  Found file: \"%s\""):format(file["path"]))
 
     local response = http.get(file["url"], {}, true)
 
@@ -108,7 +123,7 @@ for _, file in ipairs(pkg["files"]) do
         return
     end
 
-    local file = fs.open(CARL_PACKAGE_DIR .. "/" .. file["path"], "wb")
+    local file = fs.open(join(CARL_PACKAGE_DIR, file["path"]), "wb")
 
     local data = response.readAll()
 
@@ -140,7 +155,7 @@ manifest_file.close()
 settings.set("shell.allow_disk_startup", false) -- disable disk drive startup file
 settings.save()
 
-local startup_has_carl = startupHasCarl()
+local startup_has_carl = startupHasCarl(CARL_STARTUP_CALL)
 
 if not startup_has_carl then
     local old_content = ""
@@ -159,6 +174,6 @@ if not startup_has_carl then
     writer.close()
 end
 
-shell.setAlias("carl", CARL_PACKAGE_DIR .. "/" .. pkg["cli"])
+shell.setAlias("carl", join(CARL_PACKAGE_DIR, pkg["cli"]))
 
 print("Carl has been installed!")
