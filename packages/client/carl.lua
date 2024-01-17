@@ -270,13 +270,8 @@ local function bootstrap()
     end
 end
 
-if fs.exists(MANIFEST_FILE) then
-    Manifest:load()
-end
-
-if fs.exists(REPOSITORIES_FILE) then
-    Repositories:load()
-end
+Manifest:load()
+Repositories:load()
 
 local command = ...
 
