@@ -14,32 +14,6 @@ local function join(...)
     return final
 end
 
---- Check if the startup script has the carl call
---- @param search_str string The string to search for in startup script
---- @return boolean
-local function startupHasCarl(search_str)
-    local f_startup_content = fs.open("/startup.lua", "r")
-
-    if f_startup_content == nil then
-        return false
-    end
-
-    local line = f_startup_content.readLine()
-
-    while line ~= nil do
-        if line == search_str then
-            f_startup_content.close()
-            return true
-        end
-
-        line = f_startup_content.readLine()
-    end
-
-    f_startup_content.close()
-
-    return false
-end
-
 --- Print an error message in the format: "[prefix] message"
 --- @param prefix string
 --- @param message string
@@ -85,8 +59,6 @@ local function getCarlPkg()
 end
 
 -- * Vars
-
-local CARL_STARTUP_CALL = "shell.run(\"/.carl/packages/carl/carl.lua bootstrap\")"
 
 local CARL_DIR = "/.carl"
 
@@ -155,25 +127,23 @@ manifest_file.close()
 settings.set("shell.allow_disk_startup", false) -- disable disk drive startup file
 settings.save()
 
-local startup_has_carl = startupHasCarl(CARL_STARTUP_CALL)
+-- ? Set Startup File
+local startup_old_content = ""
 
-if not startup_has_carl then
-    local old_content = ""
-
-    if fs.exists("/startup.lua") then
-        local reader = fs.open("/startup.lua", "r")
-        old_content = reader.readAll() or ""
-        reader.close()
-    end
-
-    local writer = fs.open("/startup.lua", "w")
-    writer.writeLine("-- CARL STARTUP SCRIPT - DO NOT REMOVE")
-    writer.writeLine(CARL_STARTUP_CALL)
-    writer.writeLine("")
-    writer.write(old_content)
-    writer.close()
+if fs.exists("/startup.lua") then
+    local reader = fs.open("/startup.lua", "r")
+    startup_old_content = reader.readAll() or ""
+    reader.close()
 end
 
+local writer = fs.open("/startup.lua", "w")
+writer.writeLine("-- CARL STARTUP SCRIPT - DO NOT REMOVE")
+writer.writeLine("shell.run(\"/.carl/packages/carl/carl.lua bootstrap\")")
+writer.writeLine("")
+writer.write(startup_old_content)
+writer.close()
+
+-- ? Initial carl alias
 shell.setAlias("carl", join(CARL_PACKAGE_DIR, pkg["cli"]))
 
 print("Carl has been installed!")
