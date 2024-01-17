@@ -81,21 +81,6 @@ local function getCarlPkg()
     return data
 end
 
---- Download the contents of url to dest
---- @param url string
---- @param dest string
-local function downloadFile(url, dest)
-    local response = http.get(url, {}, true)
-    local file = fs.open(dest, "wb")
-
-    -- todo: nil check
-    local data = response.readAll()
-    file.write(data)
-
-    response.close()
-    file.close()
-end
-
 -- * Script
 
 if fs.exists(".carl") then
@@ -116,8 +101,26 @@ print("Installing Carl v" .. pkg["version"])
 for _, file in ipairs(pkg["files"]) do
     print("  Found file: \"" .. file["path"] .. "\"")
 
-    local path = CARL_PACKAGE_DIR .. file["path"]
-    downloadFile(file["url"], path)
+    local response = http.get(file["url"], {}, true)
+
+    if response == nil then
+        printError("FILE ERROR", "Unable to download file")
+        return
+    end
+
+    local file = fs.open(CARL_PACKAGE_DIR .. file["path"], "wb")
+
+    local data = response.readAll()
+
+    if data == nil then
+        printError("FILE ERROR", "Empty response")
+        return
+    end
+
+    file.write(data)
+
+    response.close()
+    file.close()
 end
 
 -- ? Set up directories
