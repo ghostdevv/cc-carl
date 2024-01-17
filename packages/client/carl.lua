@@ -1,5 +1,3 @@
-local pp = require "cc.pretty"
-
 -- * Config
 
 local API_URL = "https://carl.willow.sh"
@@ -21,29 +19,39 @@ local function tryAddAlias(entry)
     end
 end
 
+--- Pretty print an message in the format: "[prefix] message"
+--- @param type "error" | "info" | "success"
+--- @param prefix string
+--- @param message string
+local function message(type, prefix, message)
+    term.setTextColour(colours[type == "error" and "red" or type == "info" and "orange" or "green"])
+    term.write("[" .. prefix .. "]")
+    term.setTextColour(colours.white)
+    print(" " .. message)
+end
+
 --- Download the contents of url to dest
 --- @param url string
 --- @param dest string
 local function downloadFile(url, dest)
     local response = http.get(url, {}, true)
-    local file = fs.open(dest, "wb")
 
-    -- todo: nil check
+    if response == nil then
+        message("error", "DWN", ("Unable to download file from \"%s\""):format(url))
+        return
+    end
+
     local data = response.readAll()
-    file.write(data)
-
     response.close()
-    file.close()
-end
 
---- Print an error message in the format: "[prefix] message"
---- @param prefix string
---- @param message string
-local function printError(prefix, message)
-    term.setTextColour(colours.red)
-    term.write("[" .. prefix .. "]")
-    term.setTextColour(colours.white)
-    print(" " .. message)
+    if data == nil then
+        message("error", "DWN", ("Empty response from \"%s\""):format(url))
+        return
+    end
+
+    local file = fs.open(dest, "wb")
+    file.write(data)
+    file.close()
 end
 
 --- Construct a URL
@@ -69,14 +77,14 @@ local function apiRequest(path, query)
     local response = http.get(URL(API_URL .. path, query))
 
     if response == nil then
-        printError("API Error", "Unable to connect to API")
+        message("error", "API", "Unable to connect to API")
         return nil
     end
 
     local raw_json = response.readAll()
 
     if raw_json == nil then
-        printError("API Error", "Empty response")
+        message("error", "API", "Empty response")
         return nil
     end
 
@@ -85,12 +93,12 @@ local function apiRequest(path, query)
     local data = textutils.unserialiseJSON(raw_json, {})
 
     if data == nil then
-        printError("API Error", "Unable to parse response")
+        message("error", "API", "Unable to parse response")
         return nil
     end
 
     if data["success"] == false then
-        printError("API Error", data["message"])
+        message("error", "API", data["message"])
         return nil
     end
 
@@ -282,7 +290,7 @@ if command == "install" then
     local pkg = arg[2]
     local repo = pkg:sub(1, pkg:find("/") - 1)
 
-    print("Resolving \"" .. pkg .. "\"...")
+    message("info", "PKG", ("Resolving \"%s\""):format(pkg))
 
     local pkg_data = apiRequest("/pkg/" .. pkg, {
         definitionURL = Repositories:get(repo)
@@ -292,7 +300,9 @@ if command == "install" then
         return
     end
 
-    print("Found! Installing...")
+    message("success", "PKG",
+        ("Found v%s with %d file%s"):format(pkg_data["version"], #pkg_data["files"],
+            #pkg_data["files"] == 1 and "" or "s"))
 
     local entry = ManifestEntry:new(pkg_data["name"], pkg_data["version"], pkg_data["cli"], pkg_data["repo"])
 
@@ -300,14 +310,26 @@ if command == "install" then
     fs.makeDir(pkg_dir)
 
     for _, file in ipairs(pkg_data["files"]) do
-        print("  Found file: \"" .. file["path"] .. "\"")
-
         local path = pkg_dir .. "/" .. file["path"]
+
+        message("info", "DWN", file["path"])
         downloadFile(file["url"], path)
+        message("success", "DWN", ("Downloaded %s (%dB)"):format(file["path"], fs.getSize(path)))
     end
 
     Manifest:setManifestEntry(entry)
+
     tryAddAlias(entry)
+
+    print("")
+    term.write("Installed ")
+    term.setTextColour(colours.yellow)
+    term.write(pkg)
+    term.setTextColor(colours.white)
+    term.write("!")
+    term.setTextColour(colours.grey)
+    print(" (v" .. pkg_data["version"] .. ")")
+    term.setTextColour(colours.white)
 elseif command == "uninstall" then
     local pkg = arg[2]
 elseif command == "repo" then
@@ -317,7 +339,7 @@ elseif command == "repo" then
         local url = arg[3]
 
         if url == nil then
-            printError("ARGS", "Usage: carl repo add <url>")
+            message("error", "ARGS", "Usage: carl repo add <url>")
             return
         end
 
@@ -334,7 +356,7 @@ elseif command == "repo" then
         local repo = arg[3]
 
         if repo == nil then
-            printError("ARGS", "Usage: carl repo remove <name>")
+            message("error", "ARGS", "Usage: carl repo remove <name>")
             return
         end
 

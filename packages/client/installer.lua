@@ -14,11 +14,12 @@ local function join(...)
     return final
 end
 
---- Print an error message in the format: "[prefix] message"
+--- Pretty print an message in the format: "[prefix] message"
+--- @param type "error" | "info" | "success"
 --- @param prefix string
 --- @param message string
-local function printError(prefix, message)
-    term.setTextColour(colours.red)
+local function message(type, prefix, message)
+    term.setTextColour(colours[type == "error" and "red" or type == "info" and "orange" or "green"])
     term.write("[" .. prefix .. "]")
     term.setTextColour(colours.white)
     print(" " .. message)
@@ -30,14 +31,14 @@ local function getCarlPkg()
     local response = http.get("https://carl.willow.sh/pkg/carl/carl")
 
     if response == nil then
-        printError("API Error", "Unable to connect to API")
+        message("error", "API Error", "Unable to connect to API")
         return nil
     end
 
     local raw_json = response.readAll()
 
     if raw_json == nil then
-        printError("API Error", "Empty response")
+        message("error", "API Error", "Empty response")
         return nil
     end
 
@@ -46,12 +47,12 @@ local function getCarlPkg()
     local data = textutils.unserialiseJSON(raw_json, {})
 
     if data == nil then
-        printError("API Error", "Unable to parse response")
+        message("error", "API Error", "Unable to parse response")
         return nil
     end
 
     if data["success"] == false then
-        printError("API Error", data["message"])
+        message("error", "API Error", data["message"])
         return nil
     end
 
@@ -75,42 +76,56 @@ if fs.exists(".carl") then
     return
 end
 
--- ? Download Carl
-
 local pkg = getCarlPkg()
 
 if pkg == nil then
     return
 end
 
-print("Installing Carl v" .. pkg["version"])
+term.clear()
+term.setCursorPos(1, 1)
+term.setTextColor(colours.yellow)
+print("   ___           _ ")
+print("  / __\\__ _ _ __| |")
+print(" / /  / _` | '__| |")
+print("/ /__| (_| | |  | |")
+print("\\____/\\__,_|_|  |_|")
+print("      v" .. pkg["version"])
+term.setTextColor(colours.white)
+print("")
+
+-- ? Download Carl
 
 for _, file in ipairs(pkg["files"]) do
-    print(("  Found file: \"%s\""):format(file["path"]))
+    message("info", "DWN", file["path"])
 
     local response = http.get(file["url"], {}, true)
 
     if response == nil then
-        printError("FILE ERROR", "Unable to download file")
+        message("error", "DWN", "Unable to download file " .. file["path"])
         return
     end
 
-    local file = fs.open(join(CARL_PACKAGE_DIR, file["path"]), "wb")
+    local dest = join(CARL_PACKAGE_DIR, file["path"])
+    local writer = fs.open(dest, "wb")
 
     local data = response.readAll()
 
     if data == nil then
-        printError("FILE ERROR", "Empty response")
+        message("error", "DWN", "Empty response for " .. file["path"])
         return
     end
 
-    file.write(data)
+    writer.write(data)
 
     response.close()
-    file.close()
+    writer.close()
+
+    message("success", "DWN", ("Downloaded %s (%dB)"):format(file["path"], fs.getSize(dest)))
 end
 
 -- ? Set up directories
+message("info", "SYS", "Creating Directories")
 fs.makeDir(CARL_DIR)
 fs.makeDir(PACKAGES_DIR)
 
@@ -128,6 +143,7 @@ settings.set("shell.allow_disk_startup", false) -- disable disk drive startup fi
 settings.save()
 
 -- ? Set Startup File
+message("info", "SYS", "Setting Startup File")
 local startup_old_content = ""
 
 if fs.exists("/startup.lua") then
@@ -144,6 +160,11 @@ writer.write(startup_old_content)
 writer.close()
 
 -- ? Initial carl alias
+message("info", "SYS", "Adding Alias")
 shell.setAlias("carl", join(CARL_PACKAGE_DIR, pkg["cli"]))
 
-print("Carl has been installed!")
+print("")
+term.write("Installed! Get started with ")
+term.setTextColor(colours.yellow)
+print("carl help")
+term.setTextColor(colours.white)
