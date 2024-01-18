@@ -14,6 +14,32 @@ local function cerror(prefix, message, ...)
     error({ location = prefix, message = message, args = ... }, 2)
 end
 
+--- Pretty print an message in the format: "[prefix] message"
+--- @param type "error" | "info" | "success"
+--- @param prefix string
+--- @param message string
+local function message(type, prefix, message)
+    term.setTextColour(colours[type == "error" and "red" or type == "info" and "orange" or "green"])
+    term.write("[" .. prefix .. "]")
+    term.setTextColour(colours.white)
+    print(" " .. message)
+end
+
+--- Construct a URL
+--- @param path string
+--- @param query table<string, string?>?
+function URL(path, query)
+    local queryString = ""
+
+    if query then
+        for key, value in pairs(query) do
+            queryString = queryString .. (queryString:len() == 0 and "?" or "&") .. key .. "=" .. value
+        end
+    end
+
+    return path .. queryString
+end
+
 --- Create a copy of the specified table.
 --- @param src table
 --- @param dst table?
@@ -169,17 +195,126 @@ end
 
 --#endregion
 
+--- Make a GET request to the API
+--- @param path string
+--- @param query table<string, string?>?
+--- @return table?
+local function apiRequest(path, query)
+    local response = http.get(URL(API_URL .. path, query))
+
+    if response == nil then
+        cerror("API", "Unable to connect to API")
+        return nil
+    end
+
+    local raw_json = response.readAll()
+
+    if raw_json == nil then
+        cerror("API", "Empty response")
+        return nil
+    end
+
+    response.close()
+
+    local data = textutils.unserialiseJSON(raw_json, {})
+
+    if data == nil then
+        cerror("API", "Unable to parse response")
+        return nil
+    end
+
+    if data["success"] == false then
+        cerror("API", data["message"])
+        return nil
+    end
+
+    return data
+end
+
+--- Download the contents of url to dest
+--- @param url string
+--- @param dest string
+local function downloadFile(url, dest)
+    local response = http.get(url, {}, true)
+
+    if response == nil then
+        cerror("DWN", ("Unable to download file from \"%s\""):format(url))
+        return
+    end
+
+    local data = response.readAll()
+    response.close()
+
+    if data == nil then
+        cerror("DWN", ("Empty response from \"%s\""):format(url))
+        return
+    end
+
+    local file = fs.open(dest, "wb")
+    file.write(data)
+    file.close()
+end
+
+--- Adds the package's cli entrypoint as an alias if it exists.
+--- @param entry ManifestEntry
+local function tryAddAlias(entry)
+    if entry.cli ~= nil then
+        shell.setAlias(entry.name, entry:getDir() .. "/" .. entry.cli)
+    end
+end
+
 -- * Define API
 
 --- Module table which will be returned by `require`.
 --- @type table<string, any>
 local api = {}
 
----
+--- Install the package at the specified
 --- @param repository string
 --- @param package string
 function api.install(repository, package)
+    -- todo protect against conflicts
 
+    message("info", "PKG", ("Resolving \"%s/%s\""):format(repository, package))
+
+    local pkg_data = apiRequest("/pkg/" .. package, {
+        definitionURL = repositories:get(repository)
+    })
+
+    if pkg_data == nil then
+        return
+    end
+
+    message("success", "PKG",
+        ("Found v%s with %d file%s"):format(pkg_data["version"], #pkg_data["files"],
+            #pkg_data["files"] == 1 and "" or "s"))
+
+    local entry = ManifestEntry:new(pkg_data["name"], pkg_data["version"], pkg_data["cli"], pkg_data["repo"])
+
+    local pkg_dir = entry:getDir()
+    fs.makeDir(pkg_dir)
+
+    for _, file in ipairs(pkg_data["files"]) do
+        local path = pkg_dir .. "/" .. file["path"]
+
+        message("info", "DWN", file["path"])
+        downloadFile(file["url"], path)
+        message("success", "DWN", ("Downloaded %s (%dB)"):format(file["path"], fs.getSize(path)))
+    end
+
+    manifest:setManifestEntry(entry)
+
+    tryAddAlias(entry)
+
+    print("")
+    term.write("Installed ")
+    term.setTextColour(colours.yellow)
+    term.write(package)
+    term.setTextColor(colours.white)
+    term.write("!")
+    term.setTextColour(colours.grey)
+    print(" (v" .. pkg_data["version"] .. ")")
+    term.setTextColour(colours.white)
 end
 
 return api
