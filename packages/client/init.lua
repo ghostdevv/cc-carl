@@ -186,6 +186,13 @@ function repositories:all()
     return self.cache
 end
 
+--- Get a repository url by name.
+--- @param name string
+--- @return string?
+function repositories:get(name)
+    return self.cache[name]
+end
+
 --- Remove the repository from the library.
 --- @param name string
 function repositories:remove(name)
@@ -275,9 +282,10 @@ local api = {}
 function api.install(repository, package)
     -- todo protect against conflicts
 
-    message("info", "PKG", ("Resolving \"%s/%s\""):format(repository, package))
+    local identifier = repository .. "/" .. package
+    message("info", "PKG", ("Resolving \"%s\""):format(identifier))
 
-    local pkg_data = apiRequest("/pkg/" .. package, {
+    local pkg_data = apiRequest("/pkg/" .. identifier, {
         definitionURL = repositories:get(repository)
     })
 
@@ -302,14 +310,14 @@ function api.install(repository, package)
         message("success", "DWN", ("Downloaded %s (%dB)"):format(file["path"], fs.getSize(path)))
     end
 
-    manifest:setManifestEntry(entry)
+    manifest:set(entry)
 
     tryAddAlias(entry)
 
     print("")
     term.write("Installed ")
     term.setTextColour(colours.yellow)
-    term.write(package)
+    term.write(identifier)
     term.setTextColor(colours.white)
     term.write("!")
     term.setTextColour(colours.grey)
