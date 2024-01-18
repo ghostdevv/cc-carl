@@ -304,7 +304,7 @@ local api = {}
 api.splitIdentifier = splitIdentifier
 api.mergeIdentifier = mergeIdentifier
 
---- Install the package at the specified
+--- Install the given package.
 --- @param repository string
 --- @param package string
 function api.install(repository, package)
@@ -351,5 +351,26 @@ function api.install(repository, package)
     print(" (v" .. pkg_data["version"] .. ")")
     term.setTextColour(colours.white)
 end
+
+--- Add the repository at the given url.
+--- @param url string
+--- @return string
+function api.addRepository(url)
+    local repository = apiRequest("/repo?definitionURL=" .. url)
+
+    if repository == nil then return "" end
+    repositories:set(repository["name"], url)
+    return repository["name"]
+end
+
+--- Remove the repository with the given name.
+--- @param name string
+function api.removeRepository(name)
+    repositories:remove(name)
+end
+
+--- Get a table containing every repository
+--- @return table<string, string>
+api.getRepositories = repositories:all()
 
 return api
