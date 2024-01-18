@@ -11,7 +11,7 @@ local PACKAGES_DIR = CARL_DIR .. "/packages"
 --- @param message any
 --- @param ... any
 local function cerror(prefix, message, ...)
-    error({ location = prefix, message = message, args = ... }, 2)
+    error({ prefix = prefix, message = message, args = ... }, 2)
 end
 
 --- Pretty print an message in the format: "[prefix] message"
