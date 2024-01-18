@@ -18,11 +18,12 @@ end
 --- @param type "error" | "info" | "success"
 --- @param prefix string
 --- @param message string
-local function message(type, prefix, message)
+--- @param ... any
+local function message(type, prefix, message, ...)
     term.setTextColour(colours[type == "error" and "red" or type == "info" and "orange" or "green"])
     term.write("[" .. prefix .. "]")
     term.setTextColour(colours.white)
-    print(" " .. message)
+    print(" " .. message:format(...))
 end
 
 --- Construct a URL
@@ -245,7 +246,7 @@ local function downloadFile(url, dest)
     local response = http.get(url, {}, true)
 
     if response == nil then
-        cerror("DWN", ("Unable to download file from \"%s\""):format(url))
+        cerror("DWN", "Unable to download file from \"%s\"", url)
         return
     end
 
@@ -253,7 +254,7 @@ local function downloadFile(url, dest)
     response.close()
 
     if data == nil then
-        cerror("DWN", ("Empty response from \"%s\""):format(url))
+        cerror("DWN", "Empty response from \"%s\"", url)
         return
     end
 
@@ -283,7 +284,7 @@ function api.install(repository, package)
     -- todo protect against conflicts
 
     local identifier = repository .. "/" .. package
-    message("info", "PKG", ("Resolving \"%s\""):format(identifier))
+    message("info", "PKG", "Resolving \"%s\"", identifier)
 
     local pkg_data = apiRequest("/pkg/" .. identifier, {
         definitionURL = repositories:get(repository)
@@ -293,9 +294,8 @@ function api.install(repository, package)
         return
     end
 
-    message("success", "PKG",
-        ("Found v%s with %d file%s"):format(pkg_data["version"], #pkg_data["files"],
-            #pkg_data["files"] == 1 and "" or "s"))
+    message("success", "PKG", "Found v%s with %d file%s",
+        pkg_data["version"], #pkg_data["files"], #pkg_data["files"] == 1 and "" or "s")
 
     local entry = ManifestEntry:new(pkg_data["name"], pkg_data["version"], pkg_data["cli"], pkg_data["repo"])
 
@@ -307,7 +307,7 @@ function api.install(repository, package)
 
         message("info", "DWN", file["path"])
         downloadFile(file["url"], path)
-        message("success", "DWN", ("Downloaded %s (%dB)"):format(file["path"], fs.getSize(path)))
+        message("success", "DWN", "Downloaded %s (%dB)", file["path"], fs.getSize(path))
     end
 
     manifest:set(entry)
