@@ -6,24 +6,32 @@ local PACKAGES_DIR = CARL_DIR .. "/packages"
 
 -- * Utilities
 
---- Throws an error formatted to be pretty printed when caught.
---- @param prefix any
---- @param message any
---- @param ... any
-local function cerror(prefix, message, ...)
-    error({ prefix = prefix, message = message, args = ... }, 2)
-end
+--- @class LogRecord
+--- @field public type "error" | "info" | "success"
+--- @field public prefix string
+--- @field public message string
+--- @field public args string[]?
 
---- Pretty print an message in the format: "[prefix] message"
+--- @type fun(LogRecord)?
+local log_handler = nil
+
+--- Send a log message to the current log handler.
 --- @param type "error" | "info" | "success"
 --- @param prefix string
 --- @param message string
 --- @param ... any
-local function message(type, prefix, message, ...)
-    term.setTextColour(colours[type == "error" and "red" or type == "info" and "orange" or "green"])
-    term.write("[" .. prefix .. "]")
-    term.setTextColour(colours.white)
-    print(" " .. message:format(...))
+local function log(type, prefix, message, ...)
+    if log_handler ~= nil then
+        log_handler({ type = type, prefix = prefix, message = message, args = { ... } })
+    end
+end
+
+--- Throws a formatted error to be pretty printed when caught.
+--- @param prefix any
+--- @param message any
+--- @param ... any
+local function cerror(prefix, message, ...)
+    error({ prefix = prefix, message = message, args = { ... } }, 2)
 end
 
 --- Construct a URL
@@ -277,6 +285,12 @@ end
 --- @type table<string, any>
 local api = {}
 
+--- Set up a callback for `LogRecord`s to be sent to. Set to `nil` to disable logging.
+--- @param handler fun(LogRecord)?
+function api.setLogHandler(handler)
+    log_handler = handler
+end
+
 --- Create a package identifier from its individual components.
 --- @param repository string
 --- @param package string
@@ -304,21 +318,20 @@ end
 --- Install the given package.
 --- @param repository string
 --- @param package string
+--- @return ManifestEntry
 function api.install(repository, package)
     -- todo protect against conflicts
 
     local identifier = api.mergeIdentifier(repository, package)
-    message("info", "PKG", "Resolving \"%s\"", identifier)
+    log("info", "PKG", "Resolving \"%s\"", identifier)
 
     local pkg_data = apiRequest("/pkg/" .. identifier, {
         definitionURL = repositories:get(repository)
     })
 
-    if pkg_data == nil then
-        return
-    end
+    if pkg_data == nil then error() end
 
-    message("success", "PKG", "Found v%s with %d file%s",
+    log("success", "PKG", "Found v%s with %d file%s",
         pkg_data["version"], #pkg_data["files"], #pkg_data["files"] == 1 and "" or "s")
 
     local entry = ManifestEntry:new(pkg_data["name"], pkg_data["version"], pkg_data["cli"], pkg_data["repo"])
@@ -329,24 +342,14 @@ function api.install(repository, package)
     for _, file in ipairs(pkg_data["files"]) do
         local path = pkg_dir .. "/" .. file["path"]
 
-        message("info", "DWN", file["path"])
+        log("info", "DWN", file["path"])
         downloadFile(file["url"], path)
-        message("success", "DWN", "Downloaded %s (%dB)", file["path"], fs.getSize(path))
+        log("success", "DWN", "Downloaded %s (%dB)", file["path"], fs.getSize(path))
     end
 
     manifest:set(entry)
-
     tryAddAlias(entry)
-
-    print("")
-    term.write("Installed ")
-    term.setTextColour(colours.yellow)
-    term.write(identifier)
-    term.setTextColor(colours.white)
-    term.write("!")
-    term.setTextColour(colours.grey)
-    print(" (v" .. pkg_data["version"] .. ")")
-    term.setTextColour(colours.white)
+    return entry
 end
 
 --- Add the repository at the given url.
@@ -355,7 +358,7 @@ end
 function api.addRepository(url)
     local repository = apiRequest("/repo?definitionURL=" .. url)
 
-    if repository == nil then return "" end
+    if repository == nil then error() end
     repositories:set(repository["name"], url)
     return repository["name"]
 end

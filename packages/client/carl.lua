@@ -4,15 +4,14 @@ local pp = require("cc.pretty")
 --- @param type "error" | "info" | "success"
 --- @param prefix string
 --- @param message string | Doc
---- @param ... any
-local function message(type, prefix, message, ...)
+local function message(type, prefix, message, args)
     term.setTextColour(colours[type == "error" and "red" or type == "info" and "orange" or "green"])
     term.write("[" .. prefix .. "]")
 
     term.setTextColour(colours.white)
     if _G.type(message) == "string" then
         ---@diagnostic disable-next-line: param-type-mismatch
-        message = message:format(...)
+        message = message:format(table.unpack(args))
     end
 
     print(" " .. message)
@@ -25,10 +24,24 @@ local command = ...
 local function handle()
     local carl = require("init")
 
+    carl.setLogHandler(function(record)
+        message(record.type, record.prefix, record.message, record.args)
+    end)
+
     if command == "install" then
-        -- todo array
+        -- todo allow install of multiple packages
         local repository, package = carl.splitIdentifier(arg[2])
-        carl.install(repository, package)
+        local entry = carl.install(repository, package)
+
+        print("")
+        term.write("Installed ")
+        term.setTextColour(colours.yellow)
+        term.write(arg[2])
+        term.setTextColor(colours.white)
+        term.write("!")
+        term.setTextColour(colours.grey)
+        print(" (v" .. entry.version .. ")")
+        term.setTextColour(colours.white)
     elseif command == "uninstall" then
     elseif command == "repo" then
     elseif command == "bootstrap" then
