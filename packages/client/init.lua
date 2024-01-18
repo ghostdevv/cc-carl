@@ -1,12 +1,8 @@
 -- * Config
 
 local API_URL = "https://carl.willow.sh"
-
 local CARL_DIR = "/.carl"
-
 local PACKAGES_DIR = CARL_DIR .. "/packages"
-
-local REPOSITORIES_FILE = CARL_DIR .. "/repositories"
 
 -- * Utilities
 
@@ -140,6 +136,35 @@ end
 function manifest:get(name)
     local result, data = ManifestEntry:new(name), self.cache[name]
     return data and shallowCopy(data, result)
+end
+
+--#endregion
+
+--#region repositories
+
+--- Functions for interacting with the local repositories library.
+--- @class Repositories: CachedStorage
+local repositories = CachedStorage.new(CARL_DIR .. "/repositories")
+
+--- Updates the repositories library with the provided repository.
+--- @param name string
+--- @param url string
+function repositories:set(name, url)
+    self.cache[name] = url
+    self:save()
+end
+
+--- Get the repository map.
+--- @return table
+function repositories:all()
+    return self.cache
+end
+
+--- Remove the repository from the library.
+--- @param name string
+function repositories:remove(name)
+    --- @diagnostic disable-next-line: param-type-mismatch
+    self:set(name, nil)
 end
 
 --#endregion
