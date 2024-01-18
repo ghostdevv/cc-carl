@@ -11,7 +11,7 @@ local function message(type, prefix, message, args)
     term.setTextColour(colours.white)
     if _G.type(message) == "string" then
         ---@diagnostic disable-next-line: param-type-mismatch
-        message = message:format(table.unpack(args))
+        message = message:format(table.unpack(args or {}))
     end
 
     print(" " .. message)
@@ -41,11 +41,53 @@ local function handle()
         term.write("!")
         term.setTextColour(colours.grey)
         print(" (v" .. entry.version .. ")")
-        term.setTextColour(colours.white)
     elseif command == "uninstall" then
+        message("error", "CARL", "Not implemented")
     elseif command == "repo" then
+        local sub_command = arg[2]
+
+        if sub_command == "add" then
+            local url = arg[3]
+            if url == nil then return message("error", "ARGS", "Usage: carl repo add <url>") end
+
+            local name = carl.addRepository(url)
+
+            term.write("Repository ")
+            term.setTextColour(colours.yellow)
+            term.write(name)
+            term.setTextColour(colours.white)
+            print(" added!")
+        elseif sub_command == "remove" then
+            local name = arg[3]
+            if name == nil then return message("error", "ARGS", "Usage: carl repo remove <name>") end
+
+            carl.removeRepository(name)
+
+            term.write("Repository ")
+            term.setTextColour(colours.red)
+            term.write(name)
+            term.setTextColour(colours.white)
+            print(" removed.")
+        elseif sub_command == "list" then
+            print("Repositories:")
+
+            for name, url in pairs(carl.getRepositories()) do
+                term.setTextColour(colours.cyan)
+                term.write(name)
+                term.setTextColour(colours.grey)
+                print(" - " .. url)
+            end
+        else
+            message("error", "ARGS", "Usage: carl repo <add | remove | list>")
+        end
     elseif command == "bootstrap" then
+        carl.bootstrap()
+    else
+        message("error", "ARGS", "Unknown command")
     end
+
+    -- Reset terminal colour
+    term.setTextColour(colours.white)
 end
 
 local status, error = pcall(handle)

@@ -371,7 +371,7 @@ end
 
 --- Get a table containing every repository
 --- @return table<string, string>
-api.getRepositories = repositories:all()
+function api.getRepositories() return repositories:all() end
 
 --- Set up carl - should be run on startup.
 function api.bootstrap()
