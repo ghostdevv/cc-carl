@@ -30,6 +30,8 @@ local function shallowCopy(src, dst)
     return result
 end
 
+--#region CachedStorage
+
 --- Represents a file containing a serialised lua object.
 --- @class CachedStorage
 --- @field protected cache any?
@@ -66,6 +68,10 @@ function CachedStorage:save()
     file.close()
 end
 
+--#endregion
+
+--#region ManifestEntry
+
 --- Represents a entry in the manifest file
 --- @class ManifestEntry
 --- @field public repo string
@@ -99,6 +105,10 @@ function ManifestEntry:getDir()
     return PACKAGES_DIR .. "/" .. self.name
 end
 
+--#endregion
+
+--#region manifest
+
 --- Functions for interacting with the carl package manifest.
 --- @class manifest: CachedStorage
 local manifest = CachedStorage.new(CARL_DIR .. "/manifest")
@@ -131,6 +141,8 @@ function manifest:get(name)
     local result, data = ManifestEntry:new(name), self.cache[name]
     return data and shallowCopy(data, result)
 end
+
+--#endregion
 
 -- * Define API
 
