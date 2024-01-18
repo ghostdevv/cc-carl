@@ -26,30 +26,6 @@ local function message(type, prefix, message, ...)
     print(" " .. message:format(...))
 end
 
---- Create a package identifier from its individual components.
---- @param repository string
---- @param package string
---- @return string
-local function mergeIdentifier(repository, package)
-    return repository .. "/" .. package
-end
-
---- Split a package identifer into its individual components.
---- @param identifier string
---- @return string, string
-local function splitIdentifier(identifier)
-    local function invalid() cerror("ARGS", "'%s' is not a valid package identifier.", identifier) end
-
-    local index = identifier:find("/")
-    if index == nil then invalid() end
-
-    local repository = identifier:sub(1, index - 1)
-    local package = identifier:sub(index + 1, #identifier)
-    if #repository == 0 or #package == 0 then invalid() end
-
-    return repository, package
-end
-
 --- Construct a URL
 --- @param path string
 --- @param query table<string, string?>?
@@ -301,8 +277,29 @@ end
 --- @type table<string, any>
 local api = {}
 
-api.splitIdentifier = splitIdentifier
-api.mergeIdentifier = mergeIdentifier
+--- Create a package identifier from its individual components.
+--- @param repository string
+--- @param package string
+--- @return string
+function api.mergeIdentifier(repository, package)
+    return repository .. "/" .. package
+end
+
+--- Split a package identifer into its individual components.
+--- @param identifier string
+--- @return string, string
+function api.splitIdentifier(identifier)
+    local function invalid() cerror("ARGS", "'%s' is not a valid package identifier.", identifier) end
+
+    local index = identifier:find("/")
+    if index == nil then invalid() end
+
+    local repository = identifier:sub(1, index - 1)
+    local package = identifier:sub(index + 1, #identifier)
+    if #repository == 0 or #package == 0 then invalid() end
+
+    return repository, package
+end
 
 --- Install the given package.
 --- @param repository string
@@ -310,7 +307,7 @@ api.mergeIdentifier = mergeIdentifier
 function api.install(repository, package)
     -- todo protect against conflicts
 
-    local identifier = mergeIdentifier(repository, package)
+    local identifier = api.mergeIdentifier(repository, package)
     message("info", "PKG", "Resolving \"%s\"", identifier)
 
     local pkg_data = apiRequest("/pkg/" .. identifier, {
@@ -372,5 +369,12 @@ end
 --- Get a table containing every repository
 --- @return table<string, string>
 api.getRepositories = repositories:all()
+
+--- Set up carl - should be run on startup.
+function api.bootstrap()
+    for _, entry in ipairs(manifest:all()) do
+        tryAddAlias(entry)
+    end
+end
 
 return api
