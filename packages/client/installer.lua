@@ -130,7 +130,9 @@ fs.makeDir(CARL_DIR)
 fs.makeDir(PACKAGES_DIR)
 
 -- ? Repositories file
-fs.open(REPOSITORIES_FILE, "w").close()
+local manifest_file = fs.open(MANIFEST_FILE, "w")
+manifest_file.write("{}")
+manifest_file.close()
 
 -- ? Manifest file
 local manifest_file = fs.open(MANIFEST_FILE, "w")
