@@ -1,20 +1,21 @@
 {
-    "Lua.runtime.version": "Lua 5.2",
-    "Lua.runtime.builtin": {
-        "bit32": "enable",
-        "bit": "disable",
-        "utf8": "enable",
-        "os": "disable",
-        "io": "disable"
-    },
-    "Lua.diagnostics.disable": [
-        "undefined-field",
-        "deprecated"
-    ],
-    "Lua.workspace.maxPreload": 2000,
-    "Lua.workspace.preloadFileSize": 1000,
-    "[lua]": {
-        "editor.formatOnSave": true,
-        "editor.defaultFormatter": "sumneko.lua"
-    }
+	"Lua.runtime.version": "Lua 5.2",
+	"Lua.runtime.builtin": {
+		"bit32": "enable",
+		"bit": "disable",
+		"utf8": "enable",
+		"os": "disable",
+		"io": "disable"
+	},
+	"Lua.diagnostics.disable": ["undefined-field", "deprecated"],
+	"Lua.workspace.maxPreload": 2000,
+	"Lua.workspace.preloadFileSize": 1000,
+	"[lua]": {
+		"editor.formatOnSave": true,
+		"editor.defaultFormatter": "sumneko.lua"
+	},
+	"[json]": {
+		"editor.formatOnSave": true,
+		"editor.defaultFormatter": "esbenp.prettier-vscode"
+	}
 }
