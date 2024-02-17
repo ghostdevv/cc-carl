@@ -13,7 +13,13 @@ local PACKAGES_DIR = CARL_DIR .. "/packages"
 --- @field public args string[]?
 
 --- @type fun(LogRecord)?
-local log_handler = nil
+local log_handler = function(record)
+    term.setTextColour(colours[record.type == "error" and "red" or record.type == "info" and "orange" or "green"])
+    term.write("[" .. record.prefix .. "]")
+
+    term.setTextColour(colours.white)
+    print(" " .. record.message:format(table.unpack(record.args or {})))
+end
 
 --- Send a log message to the current log handler.
 --- @param type "error" | "info" | "success"
