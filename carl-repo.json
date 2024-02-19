@@ -9,11 +9,11 @@
 			"files": [
 				{
 					"path": "init.lua",
-					"url": "https://raw.githubusercontent.com/ghostdevv/cc-carl/main/packages/client/init.lua"
+					"url": "packages/client/init.lua"
 				},
 				{
 					"path": "cli.lua",
-					"url": "https://raw.githubusercontent.com/ghostdevv/cc-carl/main/packages/client/carl.lua"
+					"url": "packages/client/carl.lua"
 				}
 			]
 		}

@@ -9,11 +9,11 @@ interface RepositoryCacheValue {
 }
 
 export async function getRepository(
-	repository: string,
+	repository_url: string,
 	cache: Env['Bindings']['REPOSITORY_CACHE'],
 	downloadProxyURL: string,
 ): Promise<Repository> {
-	const cacheValue = await cache.get(repository);
+	const cacheValue = await cache.get(repository_url);
 
 	if (cacheValue) {
 		const { expires, repository } = JSON.parse(cacheValue) as RepositoryCacheValue;
@@ -21,7 +21,7 @@ export async function getRepository(
 		if (expires > Date.now()) return repository;
 	}
 
-	const rawDefinition = await ofetch(repository, {
+	const rawDefinition = await ofetch(repository_url, {
 		responseType: 'json',
 		headers: {
 			Accept: 'application/json',
@@ -34,7 +34,9 @@ export async function getRepository(
 		return {
 			...pkg,
 			files: pkg.files.map((file) => ({
-				url: `${downloadProxyURL}?url=${encodeURIComponent(file.url)}`,
+				url: `${downloadProxyURL}?url=${encodeURIComponent(
+					new URL(file.url, repository_url).href, // allow relative URLs
+				)}`,
 				path: file.path,
 			})),
 		};
@@ -47,7 +49,7 @@ export async function getRepository(
 	}
 
 	await cache.put(
-		repository,
+		repository_url,
 		JSON.stringify({
 			repository: definition,
 			expires: Date.now() + 300000, // five minutes,

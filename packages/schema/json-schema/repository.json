@@ -39,7 +39,6 @@
               "properties": {
                 "url": {
                   "type": "string",
-                  "format": "uri",
                   "description": "The url this file can be downloaded from."
                 },
                 "path": {

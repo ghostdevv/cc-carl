@@ -25,10 +25,7 @@ export const packageSchema = z.object({
 	files: z
 		.array(
 			z.object({
-				url: z
-					.string()
-					.url()
-					.describe('The url this file can be downloaded from.'),
+				url: z.string().describe('The url this file can be downloaded from.'),
 				path: z
 					.string()
 					.describe('The relative path this file will be saved to.'),
