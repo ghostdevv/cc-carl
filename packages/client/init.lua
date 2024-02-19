@@ -373,7 +373,7 @@ end
 --- @param url string
 --- @return string?
 function api.addRepository(url)
-    local repository = apiRequest("/repo?repository=" .. url)
+    local repository = apiRequest("/repo/metadata?url=" .. url)
     if repository == nil then return nil end
 
     repositories:set(repository["name"], url)

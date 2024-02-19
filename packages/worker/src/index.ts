@@ -38,11 +38,8 @@ server.get('/file', async (c) => {
 server.get('/pkg/:package', async (c) => {
 	const workerURL = new URL(c.req.url);
 
-	const repository_url = c.req.query('repository');
-	if (!isURL(repository_url)) throw fail('Repository URL is invalid');
-
 	const repository = await getRepository(
-		repository_url,
+		c.req.query('repository')!,
 		c.env.REPOSITORY_CACHE,
 		`${workerURL.origin}/file`,
 	);
@@ -59,19 +56,19 @@ server.get('/pkg/:package', async (c) => {
 	});
 });
 
-server.get('/repo', async (c) => {
+server.get('/repo/metadata', async (c) => {
 	const workerURL = new URL(c.req.url);
 
-	const repository_url = c.req.query('repository');
-	if (!isURL(repository_url)) throw fail('Repository URL is invalid');
-
-	const repository = await getRepository(
-		repository_url,
+	const metadata: Object = await getRepository(
+		c.req.query('url')!,
 		c.env.REPOSITORY_CACHE,
 		`${workerURL.origin}/file`,
 	);
 
-	return c.json(repository);
+	// @ts-ignore
+	delete metadata['packages'];
+
+	return c.json(metadata);
 });
 
 export default server;

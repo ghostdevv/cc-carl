@@ -1,6 +1,6 @@
 import { Repository, repositorySchema } from '@carl/schema';
 import { ofetch } from 'ofetch';
-import { fail } from './utils';
+import { fail, isURL } from './utils';
 import { Env } from './types';
 
 interface RepositoryCacheValue {
@@ -13,6 +13,8 @@ export async function getRepository(
 	cache: Env['Bindings']['REPOSITORY_CACHE'],
 	downloadProxyURL: string,
 ): Promise<Repository> {
+	if (!isURL(repository_url)) throw fail('Repository URL is invalid');
+
 	const cacheValue = await cache.get(repository_url);
 
 	if (cacheValue) {
