@@ -1,5 +1,5 @@
-import { getRepository, resolveRepositoryHost } from './repositories';
-import { error, fail } from './utils';
+import { getRepository } from './repositories';
+import { error, fail, isURL } from './utils';
 import { logger } from 'hono/logger';
 import type { Env } from './types';
 import { cors } from 'hono/cors';
@@ -35,16 +35,14 @@ server.get('/file', async (c) => {
 });
 
 //? Get package information
-server.get('/pkg/:repository/:package', async (c) => {
+server.get('/pkg/:package', async (c) => {
 	const workerURL = new URL(c.req.url);
 
-	const host = resolveRepositoryHost(
-		c.req.param('repository'),
-		c.req.query('definitionURL'),
-	);
+	const repository_url = c.req.query('repository');
+	if (!isURL(repository_url)) throw fail('Repository URL is invalid');
 
 	const repository = await getRepository(
-		host,
+		repository_url,
 		c.env.REPOSITORY_CACHE,
 		`${workerURL.origin}/file`,
 	);
@@ -61,16 +59,14 @@ server.get('/pkg/:repository/:package', async (c) => {
 	});
 });
 
-server.get('/repo/:repository?', async (c) => {
+server.get('/repo', async (c) => {
 	const workerURL = new URL(c.req.url);
 
-	const host = resolveRepositoryHost(
-		c.req.param('repository'),
-		c.req.query('definitionURL'),
-	);
+	const repository_url = c.req.query('repository');
+	if (!isURL(repository_url)) throw fail('Repository URL is invalid');
 
 	const repository = await getRepository(
-		host,
+		repository_url,
 		c.env.REPOSITORY_CACHE,
 		`${workerURL.origin}/file`,
 	);

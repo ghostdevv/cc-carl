@@ -22,3 +22,12 @@ export function fail(message: string) {
 		res: Response.json({ success: false, message }, { status: 200 }),
 	});
 }
+
+export function isURL(url: any): url is string | URL {
+	try {
+		new URL(url);
+		return true;
+	} catch {
+		return false;
+	}
+}

@@ -345,7 +345,7 @@ function api.install(repository, package)
     log("info", "PKG", "Resolving \"%s\"", identifier)
 
     local repo_url = repositories:get(repository)
-    local pkg_data = apiRequest("/pkg/" .. identifier, { definitionURL = repo_url })
+    local pkg_data = apiRequest("/pkg/" .. package, { repository = repo_url })
     if pkg_data == nil then return nil end
 
     log("success", "PKG", "Found v%s with %d file%s",
@@ -373,9 +373,9 @@ end
 --- @param url string
 --- @return string?
 function api.addRepository(url)
-    local repository = apiRequest("/repo?definitionURL=" .. url)
-
+    local repository = apiRequest("/repo?repository=" .. url)
     if repository == nil then return nil end
+
     repositories:set(repository["name"], url)
     return repository["name"]
 end

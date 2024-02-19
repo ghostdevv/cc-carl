@@ -1,3 +1,8 @@
+local DEFAULT_REPOSITORIES = {
+    glib = "https://raw.githubusercontent.com/ghostdevv/cc-glib/main/carl-repo.json",
+    carl = "https://raw.githubusercontent.com/ghostdevv/cc-carl/main/carl-repo.json",
+}
+
 -- * Functions
 
 --- Join path segments together
@@ -131,7 +136,7 @@ fs.makeDir(PACKAGES_DIR)
 
 -- ? Repositories file
 local manifest_file = fs.open(MANIFEST_FILE, "w")
-manifest_file.write("{}")
+manifest_file.write(textutils.serialise(DEFAULT_REPOSITORIES, { compact = true, allow_repetitions = false }))
 manifest_file.close()
 
 -- ? Manifest file
