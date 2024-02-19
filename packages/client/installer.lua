@@ -1,7 +1,6 @@
-local DEFAULT_REPOSITORIES = {
-    glib = "https://raw.githubusercontent.com/ghostdevv/cc-glib/main/carl-repo.json",
-    carl = "https://raw.githubusercontent.com/ghostdevv/cc-carl/main/carl-repo.json",
-}
+local PKG_URL = "https://carl.willow.sh/pkg/carl?repository="
+local DEFAULT_REPO = "https://raw.githubusercontent.com/ghostdevv/cc-carl/%s/carl-repo.json"
+local DEFAULT_REPOSITORIES = { glib = "https://raw.githubusercontent.com/ghostdevv/cc-glib/main/carl-repo.json" }
 
 -- * Functions
 
@@ -32,8 +31,8 @@ end
 
 --- Get Carl's manifest
 --- @return table?
-local function getCarlPkg()
-    local response = http.get("https://carl.willow.sh/pkg/carl/carl")
+local function getCarlPkg(repository)
+    local response = http.get(PKG_URL .. repository)
 
     if response == nil then
         message("error", "API Error", "Unable to connect to API")
@@ -76,12 +75,19 @@ local MANIFEST_FILE = join(CARL_DIR, "/manifest")
 
 -- * Script
 
-if fs.exists(".carl") then
+if fs.exists(CARL_DIR) then
     print("It looks like carl is already installed!")
     return
 end
 
-local pkg = getCarlPkg()
+local repository = arg[3]
+if repository == nil then
+    repository = DEFAULT_REPO:format("main")
+elseif repository:sub(1, 4) ~= "http" then
+    repository = DEFAULT_REPO:format(repository)
+end
+
+local pkg = getCarlPkg(repository)
 
 if pkg == nil then
     return
@@ -135,9 +141,9 @@ fs.makeDir(CARL_DIR)
 fs.makeDir(PACKAGES_DIR)
 
 -- ? Repositories file
-local manifest_file = fs.open(MANIFEST_FILE, "w")
-manifest_file.write(textutils.serialise(DEFAULT_REPOSITORIES, { compact = true, allow_repetitions = false }))
-manifest_file.close()
+local repositories_file = fs.open(REPOSITORIES_FILE, "w")
+repositories_file.write(textutils.serialise(DEFAULT_REPOSITORIES, { compact = true, allow_repetitions = false }))
+repositories_file.close()
 
 -- ? Manifest file
 local manifest_file = fs.open(MANIFEST_FILE, "w")

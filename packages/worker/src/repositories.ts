@@ -26,6 +26,8 @@ export async function getRepository(
 		headers: {
 			Accept: 'application/json',
 		},
+	}).catch(() => {
+		throw fail(`Failed to fetch repository definition`);
 	});
 
 	const definition = await repositorySchema.parseAsync(rawDefinition);
