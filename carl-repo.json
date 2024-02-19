@@ -12,7 +12,7 @@
 					"url": "https://raw.githubusercontent.com/ghostdevv/cc-carl/main/packages/client/init.lua"
 				},
 				{
-					"path": "carl.lua",
+					"path": "cli.lua",
 					"url": "https://raw.githubusercontent.com/ghostdevv/cc-carl/main/packages/client/carl.lua"
 				}
 			]
