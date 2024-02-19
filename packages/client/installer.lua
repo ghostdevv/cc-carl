@@ -87,6 +87,8 @@ elseif repository:sub(1, 4) ~= "http" then
     repository = DEFAULT_REPO:format(repository)
 end
 
+DEFAULT_REPOSITORIES["carl"] = repository
+
 local pkg = getCarlPkg(repository)
 
 if pkg == nil then
