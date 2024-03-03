@@ -6,7 +6,7 @@ local carl = require("init")
 
 if command == "install" then
     -- todo allow install of multiple packages
-    if #arg < 3 then return carl.log("error", "ARGS", "Usage: carl install <identifier>") end
+    if #arg < 2 then return carl.log("error", "ARGS", "Usage: carl install <identifier>") end
     local repository, package = carl.splitIdentifier(arg[2])
     if repository == nil or package == nil then return end
 

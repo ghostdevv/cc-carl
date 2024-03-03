@@ -12,9 +12,6 @@ local PACKAGES_DIR = CARL_DIR .. "/packages"
 --- @field public message string
 --- @field public args string[]?
 
---- @type LogRecord?
-local last_error = nil
-
 --- @type fun(LogRecord)?
 local log_handler = function(record)
     term.setTextColour(colours[record.type == "error" and "red" or record.type == "info" and "orange" or "green"])
@@ -36,14 +33,6 @@ local function log(type, prefix, message, ...)
         log_handler(record)
     end
     return record
-end
-
---- Handles logging the error and sets last_error
---- @param prefix any
---- @param message any
---- @param ... any
-local function cerror(prefix, message, ...)
-    last_error = log("error", prefix, message, ...)
 end
 
 --- Construct a URL
@@ -226,20 +215,18 @@ end
 --- Make a GET request to the API
 --- @param path string
 --- @param query table<string, string?>?
---- @return table?
+--- @return table?, LogRecord?
 local function apiRequest(path, query)
     local response = http.get(URL(API_URL .. path, query))
 
     if response == nil then
-        cerror("API", "Unable to connect to API")
-        return nil
+        return nil, log("error", "API", "Unable to connect to API")
     end
 
     local raw_json = response.readAll()
 
     if raw_json == nil then
-        cerror("API", "Empty response")
-        return nil
+        return nil, log("error", "API", "Empty response")
     end
 
     response.close()
@@ -247,13 +234,11 @@ local function apiRequest(path, query)
     local data = textutils.unserialiseJSON(raw_json, {})
 
     if data == nil then
-        cerror("API", "Unable to parse response")
-        return nil
+        return nil, log("error", "API", "Unable to parse response")
     end
 
     if data["success"] == false then
-        cerror("API", data["message"])
-        return nil
+        return nil, log("error", "API", data["message"])
     end
 
     return data
@@ -262,27 +247,24 @@ end
 --- Download the contents of url to dest
 --- @param url string
 --- @param dest string
---- @return boolean
+--- @return LogRecord?
 local function downloadFile(url, dest)
     local response = http.get(url, {}, true)
 
     if response == nil then
-        cerror("DWN", "Unable to download file from \"%s\"", url)
-        return false
+        return log("error", "DWN", "Unable to download file from \"%s\"", url)
     end
 
     local data = response.readAll()
     response.close()
 
     if data == nil then
-        cerror("DWN", "Empty response from \"%s\"", url)
-        return false
+        return log("error", "DWN", "Empty response from \"%s\"", url)
     end
 
     local file = fs.open(dest, "wb")
     file.write(data)
     file.close()
-    return true
 end
 
 --- Adds the package's cli entrypoint as an alias if it exists.
@@ -304,12 +286,6 @@ function api.setLogHandler(handler)
     log_handler = handler
 end
 
---- Get the `LogRecord` of the last error
---- @returns LogRecord?
-function api.getError()
-    return last_error
-end
-
 --- Create a package identifier from its individual components.
 --- @param repository string
 --- @param package string
@@ -320,9 +296,9 @@ end
 
 --- Split a package identifer into its individual components.
 --- @param identifier string
---- @return string?, string?
+--- @return string?, string?, LogRecord?
 function api.splitIdentifier(identifier)
-    local function invalid() cerror("ARGS", "'%s' is not a valid package identifier.", identifier) end
+    local function invalid() return nil, nil, log("error", "ARGS", "'%s' is not a valid package identifier.", identifier) end
 
     local index = identifier:find("/")
     if index == nil then return invalid() end
@@ -337,7 +313,7 @@ end
 --- Install the given package.
 --- @param repository string
 --- @param package string
---- @return ManifestEntry?
+--- @return ManifestEntry?, LogRecord?
 function api.install(repository, package)
     -- todo protect against conflicts
 
@@ -345,22 +321,23 @@ function api.install(repository, package)
     log("info", "PKG", "Resolving \"%s\"", identifier)
 
     local repo_url = repositories:get(repository)
-    local pkg_data = apiRequest("/pkg/" .. identifier, { definitionURL = repo_url })
-    if pkg_data == nil then return nil end
+    local data, err = apiRequest("/pkg/" .. identifier, { definitionURL = repo_url })
+    if data == nil then return nil, err end
 
     log("success", "PKG", "Found v%s with %d file%s",
-        pkg_data["version"], #pkg_data["files"], #pkg_data["files"] == 1 and "" or "s")
+        data["version"], #data["files"], #data["files"] == 1 and "" or "s")
 
-    local entry = ManifestEntry:new(pkg_data["name"], pkg_data["version"], pkg_data["cli"], pkg_data["repo"])
+    local entry = ManifestEntry:new(data["name"], data["version"], data["cli"], data["repo"])
 
     local pkg_dir = entry:getDir()
     fs.makeDir(pkg_dir)
 
-    for _, file in ipairs(pkg_data["files"]) do
+    for _, file in ipairs(data["files"]) do
         local path = pkg_dir .. "/" .. file["path"]
 
         log("info", "DWN", file["path"])
-        if not downloadFile(file["url"], path) then return nil end -- todo revert if error
+        err = downloadFile(file["url"], path)
+        if err ~= nil then return nil, err end -- todo revert if error
         log("success", "DWN", "Downloaded %s (%dB)", file["path"], fs.getSize(path))
     end
 
@@ -371,11 +348,11 @@ end
 
 --- Add the repository at the given url.
 --- @param url string
---- @return string?
+--- @return string?, LogRecord?
 function api.addRepository(url)
-    local repository = apiRequest("/repo?definitionURL=" .. url)
+    local repository, err = apiRequest("/repo?definitionURL=" .. url)
+    if repository == nil then return nil, err end
 
-    if repository == nil then return nil end
     repositories:set(repository["name"], url)
     return repository["name"]
 end
