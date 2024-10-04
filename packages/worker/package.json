@@ -1,17 +1,17 @@
 {
-	"name": "@carl/worker",
-	"private": true,
-	"version": "0.0.0",
-	"scripts": {
-		"dev": "wrangler dev --site ../client develop",
-		"deploy": "wrangler deploy --minify"
-	},
-	"devDependencies": {
-		"@carl/schema": "workspace:^",
-		"@cloudflare/workers-types": "^4.20230801.0",
-		"hono": "^3.12.3",
-		"ofetch": "^1.3.3",
-		"typescript": "^5.1.6",
-		"wrangler": "^3.79.0"
-	}
+    "name": "@carl/worker",
+    "private": true,
+    "version": "0.0.0",
+    "scripts": {
+        "dev": "wrangler dev --site ../client develop",
+        "deploy": "wrangler deploy --minify"
+    },
+    "devDependencies": {
+        "@carl/schema": "workspace:^",
+        "@cloudflare/workers-types": "^4.20230801.0",
+        "hono": "^3.12.3",
+        "ofetch": "^1.3.3",
+        "typescript": "^5.1.6",
+        "wrangler": "^3.80.0"
+    }
 }
