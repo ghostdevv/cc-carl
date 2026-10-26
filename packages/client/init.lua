@@ -85,6 +85,8 @@ end
 --- Reload the cache from disk.
 function CachedStorage:load()
     local file = fs.open(self.file, "r")
+    if file == nil then error("File '" .. self.file .. "' is not initialised.") end -- todo handle this gracefully?
+
     local data = file.readAll()
     file.close()
 
