@@ -13,7 +13,7 @@
 				},
 				{
 					"path": "cli.lua",
-					"url": "https://raw.githubusercontent.com/ghostdevv/cc-carl/main/packages/client/carl.lua"
+					"url": "https://raw.githubusercontent.com/ghostdevv/cc-carl/main/packages/client/cli.lua"
 				}
 			]
 		}
