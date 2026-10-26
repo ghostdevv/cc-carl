@@ -136,7 +136,7 @@ manifest_file.close()
 
 -- ? Manifest file
 local manifest_file = fs.open(MANIFEST_FILE, "w")
-manifest_file.write("{carl={repo=\"carl\",version=\"0.1.0\",cli=\"carl.lua\",},}")
+manifest_file.write("{carl={repo=\"carl\",version=\"0.1.0\",cli=\"cli.lua\",},}")
 manifest_file.close()
 
 -- ? Setup startup script
@@ -156,7 +156,7 @@ end
 
 local writer = fs.open("/startup.lua", "w")
 writer.writeLine("-- CARL STARTUP SCRIPT - DO NOT REMOVE")
-writer.writeLine("shell.run(\"/.carl/packages/carl/carl.lua bootstrap\")")
+writer.writeLine("shell.run(\"/.carl/packages/carl/cli.lua bootstrap\")")
 writer.writeLine("")
 writer.write(startup_old_content)
 writer.close()
