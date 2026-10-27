@@ -160,11 +160,13 @@ end
 --- Iterate through every entry in the manifest
 --- @return fun(): ManifestEntry
 function manifest:iter()
+    local cache = self.cache
+    if not cache then return function() end end
+    local state = { cache = cache, key = nil }
     return function()
-        for name, value in pairs(self.cache) do
-            local entry = ManifestEntry:new(name)
-            return shallowCopy(value, entry)
-        end
+        local name, value = next(state.cache, state.key)
+        state.key = name
+        return value and shallowCopy(value, ManifestEntry:new(name))
     end
 end
 
@@ -371,7 +373,7 @@ function api.getRepositories() return repositories:all() end
 
 --- Set up carl - should be run on startup.
 function api.bootstrap()
-    for _, entry in ipairs(manifest:all()) do
+    for entry in manifest:iter() do
         tryAddAlias(entry)
     end
 end
