@@ -129,9 +129,10 @@ message("info", "SYS", "Creating Directories")
 fs.makeDir(CARL_DIR)
 fs.makeDir(PACKAGES_DIR)
 
+
 -- ? Repositories file
 local repositories_file = fs.open(REPOSITORIES_FILE, "w")
-repositories_file.write("{}")
+repositories_file.write("{}") -- todo this should add carls repo
 repositories_file.close()
 
 -- ? Manifest file
