@@ -14,15 +14,6 @@ function isDefaultRepository(
 	return typeof name == 'string' && defaultRepositories[name];
 }
 
-function isURL(url: any): url is string | URL {
-	try {
-		new URL(url);
-		return true;
-	} catch {
-		return false;
-	}
-}
-
 interface RepositoryHost {
 	name?: string;
 	url: string;
@@ -39,7 +30,7 @@ export function resolveRepositoryHost(
 		};
 	}
 
-	if (!isURL(customURL)) {
+	if (typeof customURL !== 'string' || !URL.canParse(customURL)) {
 		throw fail('Custom repository URL is invalid');
 	}
 
