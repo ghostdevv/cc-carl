@@ -1,6 +1,7 @@
+import type { ContentfulStatusCode } from 'hono/utils/http-status';
 import { HTTPException } from 'hono/http-exception';
 
-export function error(status: number, error: string) {
+export function error(status: ContentfulStatusCode, error: string) {
 	return new HTTPException(status, {
 		res: new Response(JSON.stringify({ error }), {
 			status,

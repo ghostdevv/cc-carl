@@ -16,7 +16,7 @@ server.get('/install', async (c) => {
 		'https://raw.githubusercontent.com/ghostdevv/cc-carl/main/packages/client/installer.lua',
 	);
 
-	return c.body(response.body, {
+	return c.body(response.body!, {
 		headers: {
 			'Content-Type': 'text/lua',
 		},

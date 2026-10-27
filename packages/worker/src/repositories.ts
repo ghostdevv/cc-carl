@@ -1,7 +1,7 @@
-import { Repository, repositorySchema } from '@carl/schema';
+import { type Repository, repositorySchema } from '@carl/schema';
+import type { Env } from './types';
 import { ofetch } from 'ofetch';
 import { fail } from './utils';
-import { Env } from './types';
 
 export const defaultRepositories = Object.freeze({
 	glib: 'https://raw.githubusercontent.com/ghostdevv/cc-glib/main/carl-repo.json',
