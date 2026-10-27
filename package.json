@@ -2,7 +2,12 @@
     "name": "@carl/monorepo",
     "private": true,
     "scripts": {
-        "dev": "pnpm --parallel -r dev"
+        "dev": "pnpm --parallel -r dev",
+        "check": "prettier --check . && pnpm --recursive --parallel check",
+        "fix": "prettier --write . && pnpm --recursive --parallel fix"
+    },
+    "devDependencies": {
+        "prettier": "^3.9.10"
     },
     "packageManager": "pnpm@12.16.0",
     "volta": {

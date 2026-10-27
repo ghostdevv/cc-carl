@@ -4,7 +4,8 @@
     "types": "./src/index.ts",
     "type": "module",
     "scripts": {
-        "build": "tsm src/build.ts"
+        "build": "tsm src/build.ts",
+  		"check": "tsc --noEmit"
     },
     "exports": {
         ".": {
