@@ -8,7 +8,9 @@ export const defaultRepositories = Object.freeze({
 	carl: 'https://raw.githubusercontent.com/ghostdevv/cc-carl/main/carl-repo.json',
 });
 
-function isDefaultRepository(name: any): name is keyof typeof defaultRepositories {
+function isDefaultRepository(
+	name: any,
+): name is keyof typeof defaultRepositories {
 	// @ts-ignore bad
 	return typeof name == 'string' && defaultRepositories[name];
 }
@@ -58,7 +60,9 @@ export async function getRepository(
 	const cacheValue = await cache.get(host.url);
 
 	if (cacheValue) {
-		const { expires, repository } = JSON.parse(cacheValue) as RepositoryCacheValue;
+		const { expires, repository } = JSON.parse(
+			cacheValue,
+		) as RepositoryCacheValue;
 
 		if (expires > Date.now()) {
 			if (host.name && repository.name != host.name) {

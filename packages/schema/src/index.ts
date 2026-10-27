@@ -34,7 +34,9 @@ export const packageSchema = z.object({
 					.describe('The relative path this file will be saved to.'),
 			}),
 		)
-		.describe('An array of files to be downloaded as part of this package.'),
+		.describe(
+			'An array of files to be downloaded as part of this package.',
+		),
 	// dependencies: z.array(z.string()),
 });
 

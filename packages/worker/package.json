@@ -1,26 +1,26 @@
 {
-    "name": "@carl/worker",
-    "private": true,
-    "version": "0.0.0",
+	"name": "@carl/worker",
+	"private": true,
+	"version": "0.0.0",
 	"type": "module",
-    "scripts": {
+	"scripts": {
 		"dev": "wrangler dev",
 		"deploy": "wrangler deploy --minify",
 		"check": "wrangler types --check && tsc --noEmit",
 		"fix": "pnpm gen",
 		"gen": "wrangler types"
 	},
-    "devDependencies": {
-        "@carl/schema": "workspace:^",
-        "@cloudflare/workers-types": "^5.20261026.1",
-        "hono": "^4.13.14",
-        "ofetch": "^1.5.1",
-        "typescript": "^6.0.3",
-        "wrangler": "^4.152.0"
-    },
-    "packageManager": "pnpm@12.16.0",
-    "volta": {
-        "node": "26.12.1",
-        "pnpm": "12.16.0"
-    }
+	"devDependencies": {
+		"@carl/schema": "workspace:^",
+		"@cloudflare/workers-types": "^5.20261026.1",
+		"hono": "^4.13.14",
+		"ofetch": "^1.5.1",
+		"typescript": "^6.0.3",
+		"wrangler": "^4.152.0"
+	},
+	"packageManager": "pnpm@12.16.0",
+	"volta": {
+		"node": "26.12.1",
+		"pnpm": "12.16.0"
+	}
 }

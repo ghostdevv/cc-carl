@@ -8,6 +8,9 @@
 	"preview_urls": false,
 	"routes": [{ "pattern": "carl.willow.sh", "custom_domain": true }],
 	"kv_namespaces": [
-		{ "binding": "REPOSITORY_CACHE", "id": "e3f391949adb426dadd87bbd10a00a0c" },
+		{
+			"binding": "REPOSITORY_CACHE",
+			"id": "e3f391949adb426dadd87bbd10a00a0c",
+		},
 	],
 }

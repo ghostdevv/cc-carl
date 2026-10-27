@@ -29,7 +29,8 @@ server.get('/file', async (c) => {
 	if (!url) throw fail('Missing url query parameter');
 
 	const response = await fetch(url);
-	if (!response.ok || !response.body) throw error(400, 'Failed to fetch file');
+	if (!response.ok || !response.body)
+		throw error(400, 'Failed to fetch file');
 
 	return c.body(response.body);
 });
@@ -49,7 +50,9 @@ server.get('/pkg/:repository/:package', async (c) => {
 		`${workerURL.origin}/file`,
 	);
 
-	const pkg = repository.packages.find((p) => p.name == c.req.param('package'));
+	const pkg = repository.packages.find(
+		(p) => p.name == c.req.param('package'),
+	);
 	if (!pkg) throw fail('Package not found');
 
 	return c.json({
