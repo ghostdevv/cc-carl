@@ -1,5 +1,4 @@
 import { type Repository, repositorySchema } from '@carl/schema';
-import type { Env } from './types';
 import { ofetch } from 'ofetch';
 import { fail } from './utils';
 
@@ -54,7 +53,7 @@ interface RepositoryCacheValue {
 
 export async function getRepository(
 	host: RepositoryHost,
-	cache: Env['Bindings']['REPOSITORY_CACHE'],
+	cache: Env['REPOSITORY_CACHE'],
 	downloadProxyURL: string,
 ): Promise<Repository> {
 	const cacheValue = await cache.get(host.url);

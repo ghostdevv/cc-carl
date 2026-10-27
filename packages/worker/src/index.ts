@@ -1,11 +1,10 @@
 import { getRepository, resolveRepositoryHost } from './repositories';
 import { error, fail } from './utils';
 import { logger } from 'hono/logger';
-import type { Env } from './types';
 import { cors } from 'hono/cors';
 import { Hono } from 'hono';
 
-const server = new Hono<Env>();
+const server = new Hono<{ Bindings: Env }>();
 
 server.use('*', logger());
 server.use('*', cors({ origin: '*' }));
