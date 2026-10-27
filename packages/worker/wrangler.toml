@@ -1,9 +1,0 @@
-name = "carl-worker"
-account_id = "44321e1b7fbd29b56b65c1890a3bbee2"
-compatibility_date = "2024-01-15"
-
-main = "src/index.ts"
-
-kv_namespaces = [
-    { binding = "REPOSITORY_CACHE", id = "e3f391949adb426dadd87bbd10a00a0c" }
-]

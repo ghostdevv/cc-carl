@@ -1,6 +1,4 @@
 node_modules
-.DS_Store
-*.log
-.mf
-dist
-.wrangler
+/dist
+/.wrangler
+/worker-configuration.d.ts
