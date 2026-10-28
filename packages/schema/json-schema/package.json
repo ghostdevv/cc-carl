@@ -14,11 +14,15 @@
 			"description": "The current version of the package."
 		},
 		"cli": {
-			"type": [
-				"string",
-				"null"
-			],
-			"description": "If your package has a cli entry point, the name of the file to be run."
+			"anyOf": [
+				{
+					"type": "string",
+					"description": "If your package has a cli entry point, the name of the file to be run."
+				},
+				{
+					"type": "null"
+				}
+			]
 		},
 		"files": {
 			"type": "array",
@@ -38,8 +42,7 @@
 				"required": [
 					"url",
 					"path"
-				],
-				"additionalProperties": false
+				]
 			},
 			"description": "An array of files to be downloaded as part of this package."
 		},
@@ -51,9 +54,7 @@
 		"name",
 		"version",
 		"cli",
-		"files",
-		"$schema"
+		"files"
 	],
-	"additionalProperties": false,
-	"$schema": "http://json-schema.org/draft-07/schema#"
+	"$schema": "https://json-schema.org/draft/2020-12/schema"
 }

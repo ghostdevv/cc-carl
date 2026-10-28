@@ -5,7 +5,6 @@
 	"type": "module",
 	"scripts": {
 		"dev": "wrangler dev",
-		"deploy": "wrangler deploy --minify",
 		"check": "wrangler types --check && tsc --noEmit",
 		"fix": "pnpm gen",
 		"gen": "wrangler types"
@@ -16,6 +15,7 @@
 		"hono": "^4.13.14",
 		"ofetch": "^1.5.1",
 		"typescript": "catalog:",
+		"valibot": "catalog:",
 		"wrangler": "^4.152.0"
 	},
 	"packageManager": "pnpm@12.16.0",

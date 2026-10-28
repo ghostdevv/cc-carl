@@ -1,6 +1,7 @@
-import { type Repository, repositorySchema } from '@carl/schema';
+import { type Repository, RepositorySchema } from '@carl/schema';
 import { ofetch } from 'ofetch';
 import { fail } from './utils';
+import * as v from 'valibot';
 
 export const defaultRepositories = Object.freeze({
 	glib: 'https://raw.githubusercontent.com/ghostdevv/cc-glib/main/carl-repo.json',
@@ -70,7 +71,7 @@ export async function getRepository(
 		},
 	});
 
-	const definition = await repositorySchema.parseAsync(rawDefinition);
+	const definition = await v.parseAsync(RepositorySchema, rawDefinition);
 
 	if (host.name && definition.name != host.name) {
 		throw fail('Repository name mismatch');

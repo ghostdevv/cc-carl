@@ -9,11 +9,14 @@
 		"build": "node src/build.ts",
 		"check": "tsc --noEmit"
 	},
+	"dependencies": {
+		"valibot": "catalog:"
+	},
 	"devDependencies": {
 		"@types/node": "catalog:",
-		"typescript": "catalog:",
-		"zod": "^3.25.76",
-		"zod-to-json-schema": "^3.25.2"
+		"@valibot/to-json-schema": "^1.8.0",
+		"prettier": "catalog:",
+		"typescript": "catalog:"
 	},
 	"packageManager": "pnpm@12.16.0",
 	"volta": {

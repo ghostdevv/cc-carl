@@ -26,8 +26,15 @@
 						"description": "The current version of the package."
 					},
 					"cli": {
-						"type": ["string", "null"],
-						"description": "If your package has a cli entry point, the name of the file to be run."
+						"anyOf": [
+							{
+								"type": "string",
+								"description": "If your package has a cli entry point, the name of the file to be run."
+							},
+							{
+								"type": "null"
+							}
+						]
 					},
 					"files": {
 						"type": "array",
@@ -44,21 +51,18 @@
 									"description": "The relative path this file will be saved to."
 								}
 							},
-							"required": ["url", "path"],
-							"additionalProperties": false
+							"required": ["url", "path"]
 						},
 						"description": "An array of files to be downloaded as part of this package."
 					}
 				},
-				"required": ["name", "version", "cli", "files"],
-				"additionalProperties": false
+				"required": ["name", "version", "cli", "files"]
 			}
 		},
 		"$schema": {
 			"type": "string"
 		}
 	},
-	"required": ["name", "packages", "$schema"],
-	"additionalProperties": false,
-	"$schema": "http://json-schema.org/draft-07/schema#"
+	"required": ["name", "packages"],
+	"$schema": "https://json-schema.org/draft/2020-12/schema"
 }

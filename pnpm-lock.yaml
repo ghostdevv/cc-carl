@@ -167,32 +167,42 @@ catalogs:
     '@types/node':
       specifier: ^26.6.5
       version: 26.6.5
+    prettier:
+      specifier: ^3.9.10
+      version: 3.9.10
     typescript:
       specifier: ^6.0.3
       version: 6.0.3
+    valibot:
+      specifier: ^1.5.0
+      version: 1.5.0
 
 importers:
 
   .:
     devDependencies:
       prettier:
-        specifier: ^3.9.10
+        specifier: 'catalog:'
         version: 3.9.10
 
   packages/schema:
+    dependencies:
+      valibot:
+        specifier: 'catalog:'
+        version: 1.5.0(typescript@6.0.3)
     devDependencies:
       '@types/node':
         specifier: 'catalog:'
         version: 26.6.5
+      '@valibot/to-json-schema':
+        specifier: ^1.8.0
+        version: 1.8.0(valibot@1.5.0(typescript@6.0.3))
+      prettier:
+        specifier: 'catalog:'
+        version: 3.9.10
       typescript:
         specifier: 'catalog:'
         version: 6.0.3
-      zod:
-        specifier: ^3.25.76
-        version: 3.25.76
-      zod-to-json-schema:
-        specifier: ^3.25.2
-        version: 3.25.2(zod@3.25.76)
 
   packages/worker:
     devDependencies:
@@ -211,6 +221,9 @@ importers:
       typescript:
         specifier: 'catalog:'
         version: 6.0.3
+      valibot:
+        specifier: 'catalog:'
+        version: 1.5.0(typescript@6.0.3)
       wrangler:
         specifier: ^4.152.0
         version: 4.152.0(@cloudflare/workers-types@5.20261026.1)(@types/node@26.6.5)
@@ -617,6 +630,11 @@ packages:
   '@types/node@26.6.5':
     resolution: {integrity: sha512-uMzsv9stDdofIZBx4UGh4Z9ZgXnGC9seRDscilBcTHAeOFk67MZg/k9bWVfO+bk4qZmG+l52hRnLwUiH2LnJTg==}
 
+  '@valibot/to-json-schema@1.8.0':
+    resolution: {integrity: sha512-a0M+uwCuQZEPAo65NYkFSJ14O5c213KoSZmPdoCfuFvUhfULi4T2Z6Tpjv6lTVMW9RoLm74RpRAjNEa43KcN+g==}
+    peerDependencies:
+      valibot: ^1.5.0
+
   blake3-wasm@2.1.5:
     resolution: {integrity: sha512-F1+K8EbfOZE49dtoPtmxUQrpXaBIl3ICvasLh+nJta0xkz+9kF/7uet9fLnwKqhDrmj6g+6K3Tw9yQPUg2ka5g==}
 
@@ -712,6 +730,14 @@ packages:
   unenv@2.0.0-rc.24:
     resolution: {integrity: sha512-i7qRCmY42zmCwnYlh9H2SvLEypEFGye5iRmEMKjcGi7zk9UquigRjFtTLz0TYqr0ZGLZhaMHl/foy1bZR+Cwlw==}
 
+  valibot@1.5.0:
+    resolution: {integrity: sha512-nil6AkP2TChWL43Z5uJ6GTxX01CUA+g8LWUM+N/rB9NBbkUMaUsi9PUNzlUPgoKASgmx9f7eGOYpJ04/fSa6FQ==}
+    peerDependencies:
+      typescript: '>=5'
+    peerDependenciesMeta:
+      typescript:
+        optional: true
+
   workerd@1.20261019.1:
     resolution: {integrity: sha512-UUYRUq/7DmeCl11YriNbcVbjUZVLtt8uuCXFu+nz77hGFf8d4DEVXoCYtnA+MlBatE4+wxoj47DVqzK3xGBAiw==}
     engines: {node: '>=16'}
@@ -744,14 +770,6 @@ packages:
 
   youch@4.1.0-beta.10:
     resolution: {integrity: sha512-rLfVLB4FgQneDr0dv1oddCVZmKjcJ6yX6mS4pU82Mq/Dt9a3cLZQ62pDBL4AUO+uVrCvtWz3ZFUL2HFAFJ/BXQ==}
-
-  zod-to-json-schema@3.25.2:
-    resolution: {integrity: sha512-O/PgfnpT1xKSDeQYSCfRI5Gy3hPf91mKVDuYLUHZJMiDFptvP41MSnWofm8dnCm0256ZNfZIM7DSzuSMAFnjHA==}
-    peerDependencies:
-      zod: ^3.25.28 || ^4
-
-  zod@3.25.76:
-    resolution: {integrity: sha512-gzUt/qt81nXsFGKIFcC3YnfEAx5NkunCfnDlvuBSSFS02bcXu4Lmea0AFIUwbLWxWPx3d9p8S5QoaujKcNQxcQ==}
 
 snapshots:
 
@@ -1002,6 +1020,10 @@ snapshots:
     dependencies:
       undici-types: 8.9.0
 
+  '@valibot/to-json-schema@1.8.0(valibot@1.5.0(typescript@6.0.3))':
+    dependencies:
+      valibot: 1.5.0(typescript@6.0.3)
+
   blake3-wasm@2.1.5: {}
 
   cookie@1.1.1: {}
@@ -1127,6 +1149,10 @@ snapshots:
     dependencies:
       pathe: 2.0.3
 
+  valibot@1.5.0(typescript@6.0.3):
+    optionalDependencies:
+      typescript: 6.0.3
+
   workerd@1.20261019.1:
     optionalDependencies:
       '@cloudflare/workerd-darwin-64': 1.20261019.1
@@ -1167,9 +1193,3 @@ snapshots:
       '@speed-highlight/core': 1.2.24
       cookie: 1.1.1
       youch-core: 0.3.3
-
-  zod-to-json-schema@3.25.2(zod@3.25.76):
-    dependencies:
-      zod: 3.25.76
-
-  zod@3.25.76: {}

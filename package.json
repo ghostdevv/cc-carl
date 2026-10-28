@@ -7,7 +7,7 @@
 		"fix": "prettier --write . && pnpm --recursive --parallel fix"
 	},
 	"devDependencies": {
-		"prettier": "^3.9.10"
+		"prettier": "catalog:"
 	},
 	"packageManager": "pnpm@12.16.0",
 	"volta": {
