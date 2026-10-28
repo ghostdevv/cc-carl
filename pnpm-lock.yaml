@@ -184,9 +184,6 @@ importers:
       '@types/node':
         specifier: 'catalog:'
         version: 26.6.5
-      desm:
-        specifier: ^1.3.1
-        version: 1.3.1
       tsm:
         specifier: ^2.3.0
         version: 2.3.0
@@ -641,9 +638,6 @@ packages:
   cookie@1.1.1:
     resolution: {integrity: sha512-ei8Aos7ja0weRpFzJnEA9UHJ/7XQmqglbRwnf2ATjcB9Wq874VKH9kfjjirM6UhU2/E5fFYadylyhFldcqSidQ==}
     engines: {node: '>=18'}
-
-  desm@1.3.1:
-    resolution: {integrity: sha512-vgTAOosB1aHrmzjGnzFCbjvXbk8QAOC/36JxJhcBkeAuUy8QwRFxAWBHemiDpUB3cbrBruFUdzpUS21aocvaWg==}
 
   destr@2.0.5:
     resolution: {integrity: sha512-ugFTXCtDZunbzasqBxrK93Ik/DRYsO6S/fedkWEMKqt04xZ4csmnmwGDBAb07QWNaGMAmnTIemsYZCksjATwsA==}
@@ -1162,8 +1156,6 @@ snapshots:
   blake3-wasm@2.1.5: {}
 
   cookie@1.1.1: {}
-
-  desm@1.3.1: {}
 
   destr@2.0.5: {}
 

@@ -2,9 +2,9 @@ import { repositorySchema, packageSchema } from './index';
 import { zodToJsonSchema } from 'zod-to-json-schema';
 import { writeFile, mkdir } from 'node:fs/promises';
 import { type AnyZodObject, z } from 'zod';
-import { join } from 'desm';
+import { join } from 'node:path';
 
-const SCHEMA_DIR = join(import.meta.url, '../json-schema');
+const SCHEMA_DIR = join(import.meta.dirname, '../json-schema');
 
 await mkdir(SCHEMA_DIR, { recursive: true });
 
