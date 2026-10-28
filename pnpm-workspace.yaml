@@ -5,3 +5,7 @@ allowBuilds:
     esbuild: true
     sharp: true
     workerd: true
+
+catalog:
+    typescript: ^6.0.3
+    '@types/node': ^26.6.5
