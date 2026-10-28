@@ -61,8 +61,6 @@ elseif command == "repo" then
     else
         carl.log("error", "ARGS", "Usage: carl repo <add | remove | list>")
     end
-elseif command == "bootstrap" then
-    carl.bootstrap()
 else
     carl.log("error", "ARGS", "Unknown command")
 end

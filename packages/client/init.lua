@@ -371,8 +371,8 @@ end
 --- @return table<string, string>
 function api.getRepositories() return repositories:all() end
 
---- Set up carl - should be run on startup.
-function api.bootstrap()
+--- Partially setup carl - should be run on startup.
+function api.init()
     for entry in manifest:iter() do
         tryAddAlias(entry)
     end

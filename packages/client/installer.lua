@@ -158,7 +158,7 @@ end
 -- todo only write this if it doesn't exist
 local writer = fs.open("/startup.lua", "w")
 writer.writeLine("-- CARL STARTUP SCRIPT - DO NOT REMOVE")
-writer.writeLine("shell.run(\"/.carl/packages/carl/cli.lua bootstrap\")")
+writer.writeLine("assert(loadfile(\"/.carl/packages/carl/inject.lua\", nil, _ENV))()")
 writer.writeLine("")
 writer.write(startup_old_content)
 writer.close()
