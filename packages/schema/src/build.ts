@@ -1,4 +1,4 @@
-import { repositorySchema, packageSchema } from './index';
+import { repositorySchema, packageSchema } from './index.ts';
 import { zodToJsonSchema } from 'zod-to-json-schema';
 import { writeFile, mkdir } from 'node:fs/promises';
 import { type AnyZodObject, z } from 'zod';

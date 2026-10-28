@@ -5,10 +5,11 @@
 		"module": "ESNext",
 		"strict": true,
 		"verbatimModuleSyntax": true,
-		"allowJs": true,
-		"checkJs": true,
 		"resolveJsonModule": true,
 		"skipLibCheck": true,
+		"allowImportingTsExtensions": true,
+		"erasableSyntaxOnly": true,
+		"noEmit": true,
 		"types": ["node"],
 		"lib": ["esnext"]
 	},

@@ -1,21 +1,16 @@
 {
 	"name": "@carl/schema",
 	"private": true,
-	"types": "./src/index.ts",
 	"type": "module",
-	"scripts": {
-		"build": "tsm src/build.ts",
-		"check": "tsc --noEmit"
-	},
 	"exports": {
-		".": {
-			"import": "./src/index.ts",
-			"types": "./src/index.ts"
-		}
+		".": "./src/index.ts"
+	},
+	"scripts": {
+		"build": "node src/build.ts",
+		"check": "tsc --noEmit"
 	},
 	"devDependencies": {
 		"@types/node": "catalog:",
-		"tsm": "^2.3.0",
 		"typescript": "catalog:",
 		"zod": "^3.25.76",
 		"zod-to-json-schema": "^3.25.2"
