@@ -18,7 +18,7 @@ export const PackageSchema = v.object({
 		v.regex(SEMVER_REGEX),
 		v.description('The current version of the package.'),
 	),
-	cli: v.nullable(
+	cli: v.nullish(
 		v.pipe(
 			v.string(),
 			v.description(

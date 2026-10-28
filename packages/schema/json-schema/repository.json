@@ -56,7 +56,7 @@
 						"description": "An array of files to be downloaded as part of this package."
 					}
 				},
-				"required": ["name", "version", "cli", "files"]
+				"required": ["name", "version", "files"]
 			}
 		},
 		"$schema": {
