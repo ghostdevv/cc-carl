@@ -1,0 +1,18 @@
+{
+	"compilerOptions": {
+		"moduleResolution": "Bundler",
+		"target": "ESNext",
+		"module": "ESNext",
+		"strict": true,
+		"verbatimModuleSyntax": true,
+		"resolveJsonModule": true,
+		"skipLibCheck": true,
+		"allowImportingTsExtensions": true,
+		"erasableSyntaxOnly": true,
+		"noEmit": true,
+		"types": ["node"],
+		"lib": ["esnext"]
+	},
+	"include": ["./src/**.ts"],
+	"exclude": ["./node_modules/**"]
+}
