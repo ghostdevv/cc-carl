@@ -132,7 +132,7 @@ fs.makeDir(PACKAGES_DIR)
 
 -- ? Repositories file
 local repositories_file = fs.open(REPOSITORIES_FILE, "w")
-repositories_file.write("{}") -- todo this should add carls repo
+repositories_file.write('{carl="https://raw.githubusercontent.com/ghostdevv/cc-carl/main/carl-repo.json"}')
 repositories_file.close()
 
 -- ? Manifest file
@@ -155,6 +155,7 @@ if fs.exists("/startup.lua") then
     reader.close()
 end
 
+-- todo only write this if it doesn't exist
 local writer = fs.open("/startup.lua", "w")
 writer.writeLine("-- CARL STARTUP SCRIPT - DO NOT REMOVE")
 writer.writeLine("shell.run(\"/.carl/packages/carl/cli.lua bootstrap\")")
